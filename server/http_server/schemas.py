@@ -2,6 +2,15 @@ from pydantic import BaseModel
 from typing import Optional
 
 
+class Student(BaseModel):
+    id: int
+    full_name: str
+    year: int
+    photo: str
+    course: int
+    group: str
+
+
 class StudentCreate(BaseModel):
     full_name: str
     year: int

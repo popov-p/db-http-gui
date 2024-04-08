@@ -23,16 +23,16 @@ engine = create_engine('postgresql://postgres@/postgres')
 
 Base.metadata.create_all(engine)
 
-Session = sessionmaker(bind=engine)
-session = Session()
-query = select(Student)
-results = session.execute(query)
+#Session = sessionmaker(bind=engine)
+#session = Session()
+#query = select(Student)
+#results = session.execute(query)
 
-for row in results:
-   print(row)
+#for row in results:
+#   print(row)
 
 #session.commit()
-session.close()
+#session.close()
 
 
 
