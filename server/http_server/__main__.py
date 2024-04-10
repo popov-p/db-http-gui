@@ -3,12 +3,42 @@ from fastapi import FastAPI
 from fastapi import Depends
 from sqlalchemy.orm import sessionmaker
 from fastapi.exceptions import HTTPException
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from server.http_server import models, schemas
+from typing import List
+from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
 from server.http_server.schemas import StudentCreate, StudentUpdate
-
 from server.http_server import crud
+import os
+from configparser import ConfigParser
+
+config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                'cfg.ini')
+utils.init_config(config_file_path)
+
+config = ConfigParser()
+
+#login = 'pavel'
+#password = 'popov'
+
+#pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+#hashed_password = pwd_context.hash(password)
+
+#config.add_section('auth')
+#config.set('auth', 'username', login)
+#config.set('auth', 'password', hashed_password)
+
+#with open(config_file_path, 'w') as configfile:
+#    config.write(configfile)
+
+
+config.read(config_file_path)
+username = config.get('auth', 'username')
+user_password = config.get('auth', 'password')
+#print(f'username: {username}, hashed_p_u: {user_password}')
+security = HTTPBasic()
+
 
 app = FastAPI()
 
@@ -30,7 +60,6 @@ def root():
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
 
-
 # Read student by ID
 @app.get("/students/{student_id}", response_model=schemas.Student)
 def read_student(student_id: int, db: Session = Depends(get_db)):
@@ -39,6 +68,9 @@ def read_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Student not found")
     return db_student
 
+@app.get("/students/", response_model=List[schemas.Student])
+def get_all_students(db: Session = Depends(get_db)):
+    return crud.get_all_students(db)
 
 # Update student by ID 
 @app.put("/students/{student_id}", response_model=schemas.Student)

@@ -4,7 +4,9 @@ from typing import Optional
 
 class Student(BaseModel):
     id: int
-    full_name: str
+    last_name: str
+    first_name: str
+    patronymic: str
     year: int
     photo: str
     course: int
@@ -12,7 +14,9 @@ class Student(BaseModel):
 
 
 class StudentCreate(BaseModel):
-    full_name: str
+    last_name: str
+    first_name: str
+    patronymic: str
     year: int
     photo: str
     course: int
@@ -20,7 +24,9 @@ class StudentCreate(BaseModel):
 
 
 class StudentUpdate(BaseModel):
-    full_name: Optional[str] = None
+    last_name: Optional[str] = None
+    first_name: Optional[str] = None
+    patronymic: Optional[str] = None
     year: Optional[int] = None
     photo: Optional[str] = None
     course: Optional[int] = None
