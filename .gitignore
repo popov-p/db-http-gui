@@ -1,0 +1,13 @@
+.idea/
+.vscode/
+.pytest_cache/
+venv/
+dist/
+build/
+__pycache__/
+*.egg-info/
+MANIFEST
+*.pyc
+*.log
+client/build-Debug
+client/CMakeLists.txt.user
