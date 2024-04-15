@@ -28,6 +28,8 @@ set(PROJECT_SOURCES
         src/main-widget.h
         src/settings-dialog.cpp
         src/settings-dialog.h
+        src/add-element-dialog.cpp
+        src/add-element-dialog.h
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

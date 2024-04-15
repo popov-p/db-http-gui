@@ -10,7 +10,8 @@
 #include <QLineEdit>
 #include <QIntValidator>
 #include <glog/logging.h>
-
+#include <QStandardItemModel>
+#include <QTableView>
 
 class MainWidget : public QWidget {
     Q_OBJECT
@@ -20,10 +21,19 @@ public:
 private:
     QVBoxLayout *widgetVLayout;
     QPushButton *disconnectButton;
+    QPushButton *addButton;
+    QPushButton *deleteButton;
+    QPushButton *deleteAllButton;
     QLabel *responseLabel;
 
-    QHBoxLayout *hDisconnectLayout;
+    QHBoxLayout *hHeaderLayout;
     QHBoxLayout *hResponseLabelLayout;
+    QHBoxLayout * hTableViewLayout;
+    /*database*/
+    QStandardItemModel *model;
+    QTableView *tableView;
+
+
 public slots:
     void slotOkButtonDone();
 private slots:
