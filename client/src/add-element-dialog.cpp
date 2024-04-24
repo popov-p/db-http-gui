@@ -43,7 +43,9 @@ AddElementDialog::~AddElementDialog() {
 }
 
 void AddElementDialog::slotOkButtonDone() {
-    qDebug() << "qwe";
+    qDebug() << "Qt : AddElementDialog slot ok button done";
+    hide(); //for now
+
 //    if(!usernameLineEdit->text().isEmpty() &&
 //       !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
 //        //dumpCfgIni(client.get_cfg_path());
@@ -63,11 +65,12 @@ void AddElementDialog::slotOkButtonDone() {
 }
 
 void AddElementDialog::slotCancelButtonClicked() {
+    LOG(INFO) << "Qt: AddElementDialog slotCancelButtonClicked";
 //    usernameLineEdit->clear();
 //    passwordLineEdit->clear();
 //    settingsStatus->clear();
-//    emit cancelButtonClicked();
-//    hide();
+    emit cancelButtonClicked();
+    hide();
 }
 
 void AddElementDialog::dumpCfgIni(std::string cfg_path) {

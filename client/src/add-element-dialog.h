@@ -1,5 +1,6 @@
 #ifndef ADD_ELEMENT_DIALOG_H
 #define ADD_ELEMENT_DIALOG_H
+
 #include <glog/logging.h>
 
 #include <QDialog>
