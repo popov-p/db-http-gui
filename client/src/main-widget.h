@@ -35,7 +35,7 @@ private:
     QPushButton *deleteButton;
     QPushButton *deleteAllButton;
     QLabel *responseLabel;
-
+    QLabel *usernameLabel;
     QHBoxLayout *hHeaderLayout;
     QHBoxLayout *hResponseLabelLayout;
     QHBoxLayout *hTableViewLayout;

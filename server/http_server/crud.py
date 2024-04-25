@@ -11,6 +11,9 @@ def create_student(db: Session, student: schemas.StudentCreate):
 def get_student(db: Session, student_id: int):
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
+def get_all_students(db: Session):
+    return db.query(models.Student)
+
 def update_student(db: Session, student_id: int, student: schemas.StudentUpdate):
     db_student = db.query(models.Student).filter(models.Student.id == student_id).first()
     for key, value in student.dict().items():

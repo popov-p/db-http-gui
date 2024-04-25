@@ -25,6 +25,7 @@ SettingsDialog::SettingsDialog(QNetworkAccessManager* networkManager,
 
     usernameLineEdit = new QLineEdit();
     passwordLineEdit = new QLineEdit();
+    passwordLineEdit->setEchoMode(QLineEdit::Password);
     logdirLineEdit = new QLineEdit();
     logdirLineEdit->setText("../log");
 
@@ -109,7 +110,7 @@ void SettingsDialog::slotOkButtonDone() {
        !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
 
         QNetworkRequest request(QUrl("http://127.0.0.1:8000/auth"));
-        QNetworkReply *reply = networkManager->get(request);
+        QNetworkReply *reply = networkManager->post(request, QByteArray());
 
         QObject::connect(reply, &QNetworkReply::finished, [&, reply](){
             if(reply->error() == QNetworkReply::NoError) {
@@ -117,6 +118,7 @@ void SettingsDialog::slotOkButtonDone() {
                 usernameLineEdit->clear();
                 passwordLineEdit->clear();
                 logdirLineEdit->setText("../log");
+                logComboBox->setCurrentIndex(0);
                 settingsStatus->clear();
                 hide();
                 LOG(INFO) << "Qt UI: SettingsDialog ok button done";
@@ -129,7 +131,7 @@ void SettingsDialog::slotOkButtonDone() {
             else {
                 LOG(ERROR) << reply->errorString().toStdString();
                 networkManager->clearAccessCache();
-                settingsStatus->setText("Error while connection");
+                settingsStatus->setText("Connection error");
 
             }
             reply->deleteLater();

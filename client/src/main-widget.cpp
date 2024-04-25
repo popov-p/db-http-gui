@@ -19,13 +19,16 @@ MainWidget::MainWidget(QNetworkAccessManager* networkManager,
     deleteAllButton = new QPushButton("Delete all");
     deleteAllButton->setFixedSize(100, 50);
 
+    qDebug() << authenticator->user();
 
+    usernameLabel = new QLabel("upd later");
 
     hHeaderLayout = new QHBoxLayout();
     hHeaderLayout->addWidget(addButton);
     hHeaderLayout->addWidget(deleteButton);
     hHeaderLayout->addWidget(deleteAllButton);
     hHeaderLayout->addStretch();
+    hHeaderLayout->addWidget(usernameLabel);
     hHeaderLayout->addWidget(disconnectButton);
 
     responseLabel = new QLabel("response status will be here");
@@ -53,7 +56,6 @@ MainWidget::MainWidget(QNetworkAccessManager* networkManager,
             model->setItem(row, col, item);
         }
     } //this will be deleted later
-
     QStringList names = {"Петров", "Иванов", "Попов", "Сидоров", "Петровский"};
     for (int row = 0; row < names.size(); ++row) {
             QModelIndex index = model->index(row, 0, QModelIndex());
@@ -101,9 +103,6 @@ MainWidget::MainWidget(QNetworkAccessManager* networkManager,
     hFilterOptionsLayout->addWidget(geqCheckBox);
 
 
-
-
-
     widgetVLayout->addLayout(hHeaderLayout);
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hResponseLabelLayout);
@@ -131,6 +130,7 @@ MainWidget::~MainWidget() {
     delete deleteButton;
     delete deleteAllButton;
     delete disconnectButton;
+    delete usernameLabel;
     delete responseLabel;
     delete hHeaderLayout;
     delete hResponseLabelLayout;

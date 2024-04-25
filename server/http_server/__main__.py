@@ -56,16 +56,16 @@ def root():
 
 
 
-@app.get("/auth")
-def protected_route(credentials: HTTPBasicCredentials = Depends(security)):
+@app.post("/auth")
+def auth(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = username
     correct_password = user_password
     if credentials.username != correct_username or credentials.password != correct_password:
-        raise HTTPException(status_code=403, detail="Incorrect username or password")
+        raise HTTPException(status_code=403 , detail="Incorrect username or password")
     return {"message": "Welcome, authorized user!"}
 
 # Create student
-@app.post("/students/", response_model=schemas.StudentCreate)
+@app.post("/create-student/", response_model=schemas.StudentCreate)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
 
