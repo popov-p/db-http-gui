@@ -14,7 +14,8 @@
 #include <QDialog>
 #include <QStackedWidget>
 #include <glog/logging.h>
-
+#include <QNetworkAccessManager>
+#include <QAuthenticator>
 
 class MainWindow : public QMainWindow
 {
@@ -34,6 +35,8 @@ private:
     ConnectWidget *connectWidget;
     MainWidget *mainWidget;
     SettingsDialog *settingsDialog;
+    QNetworkAccessManager *networkManager;
+    QAuthenticator *authenticator;
 };
 
 

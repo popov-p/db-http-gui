@@ -15,12 +15,17 @@
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
 #include <QCheckBox>
+#include <QHeaderView>
+#include <QNetworkAccessManager>
+#include <QAuthenticator>
 #include "add-element-dialog.h"
+
 
 class MainWidget : public QWidget {
     Q_OBJECT
 public:
-    MainWidget(QWidget *parent = nullptr);
+    MainWidget(QNetworkAccessManager *networkManager,
+               QAuthenticator *authenticator, QWidget *parent = nullptr);
     ~MainWidget();
 private:
     AddElementDialog *addElementDialog;
@@ -42,12 +47,15 @@ private:
     /*filtering options*/
     QComboBox *startsWithLetterComboBox;
     QLabel *startsWithLetterLabel;
-    QLineEdit *startsWithLetterLineEdit;
+    QComboBox *alphabetComboBox;
 
     QComboBox *compareComboBox;
-    QLineEdit *compareLineEdit;
+    QComboBox *compareElementsComboBox;
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
+
+    QNetworkAccessManager *networkManager = nullptr;
+    QAuthenticator *authenticator = nullptr;
 
 public slots:
     void slotOkButtonDone();

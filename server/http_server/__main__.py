@@ -15,7 +15,7 @@ from configparser import ConfigParser
 
 config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'cfg.ini')
-utils.init_config(config_file_path)
+#utils.init_config(config_file_path)
 
 config = ConfigParser()
 
@@ -36,7 +36,6 @@ config = ConfigParser()
 config.read(config_file_path)
 username = config.get('auth', 'username')
 user_password = config.get('auth', 'password')
-#print(f'username: {username}, hashed_p_u: {user_password}')
 security = HTTPBasic()
 
 
@@ -54,6 +53,16 @@ def get_db():
 @app.get("/")
 def root():
     return {"message": "Hello World"}
+
+
+
+@app.get("/auth")
+def protected_route(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = username
+    correct_password = user_password
+    if credentials.username != correct_username or credentials.password != correct_password:
+        raise HTTPException(status_code=403, detail="Incorrect username or password")
+    return {"message": "Welcome, authorized user!"}
 
 # Create student
 @app.post("/students/", response_model=schemas.StudentCreate)

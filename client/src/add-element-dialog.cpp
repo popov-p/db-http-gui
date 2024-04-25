@@ -1,7 +1,7 @@
 #include "add-element-dialog.h"
 #include <QDebug>
 
-AddElementDialog::AddElementDialog(QWidget *parent) : QDialog(parent) {
+AddElementDialog::AddElementDialog(QNetworkAccessManager* networkManager, QWidget *parent) : QDialog(parent) {
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
 

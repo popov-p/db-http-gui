@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5 COMPONENTS Widgets REQUIRED)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+find_package(Qt6 REQUIRED COMPONENTS Network)
 find_package(Boost REQUIRED COMPONENTS program_options)
 find_package(glog REQUIRED)
 include_directories(${CMAKE_SOURCE_DIR}/src)
@@ -47,6 +48,7 @@ target_link_libraries(client
                       PRIVATE Qt${QT_VERSION_MAJOR}::Widgets
                       glog::glog
                       Boost::program_options
+                      Qt6::Network
 )
 
 set_target_properties(client PROPERTIES

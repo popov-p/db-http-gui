@@ -13,7 +13,8 @@
 #include <QLineEdit>
 #include <QSettings>
 #include <QValidator>
-
+#include <QNetworkAccessManager>
+#include <QAuthenticator>
 
 class NoSpcValidator : public QValidator {
 public:
@@ -31,7 +32,8 @@ public:
 class SettingsDialog : public QDialog {
     Q_OBJECT
 public:
-    SettingsDialog(QWidget *parent = nullptr);
+    SettingsDialog(QNetworkAccessManager* networkManager,
+                   QAuthenticator *authenticator, QWidget *parent = nullptr);
     void dumpCfgIni(std::string cfg_path);
     ~SettingsDialog();
 signals:
@@ -60,6 +62,8 @@ private:
     QHBoxLayout *hSettingsStatusLayout;
     QVBoxLayout *verticalDialogLayout;
     NoSpcValidator *credentialsValidator;
+    QNetworkAccessManager* networkManager = nullptr;
+    QAuthenticator *authenticator = nullptr;
 };
 
 

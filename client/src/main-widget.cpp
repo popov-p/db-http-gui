@@ -1,9 +1,10 @@
 #include "main-widget.h"
 #include <QDebug>
 
-
-MainWidget::MainWidget(QWidget *parent) {
-    addElementDialog = new AddElementDialog();
+MainWidget::MainWidget(QNetworkAccessManager* networkManager,
+                       QAuthenticator *authenticator, QWidget *parent) : networkManager(networkManager),
+                                                                         authenticator(authenticator) {
+    addElementDialog = new AddElementDialog(networkManager);
     widgetVLayout = new QVBoxLayout();
 
     disconnectButton = new QPushButton("Disconnect");
@@ -41,10 +42,9 @@ MainWidget::MainWidget(QWidget *parent) {
     tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     tableView->setModel(model);
     model->setHorizontalHeaderLabels(QStringList() << "Name" << "Values");
-
+    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    tableView->horizontalHeader()->setStretchLastSection(true);
     //test filling
-
-
     for (int row = 0; row < 10; ++row) {
         for (int col = 0; col < 2; ++col) {
             QString data = QString("Row %1, Col %2").arg(row).arg(col);
@@ -52,7 +52,7 @@ MainWidget::MainWidget(QWidget *parent) {
             item->setEditable(false);
             model->setItem(row, col, item);
         }
-    } //this will be commented later
+    } //this will be deleted later
 
     QStringList names = {"Петров", "Иванов", "Попов", "Сидоров", "Петровский"};
     for (int row = 0; row < names.size(); ++row) {
@@ -71,11 +71,21 @@ MainWidget::MainWidget(QWidget *parent) {
     startsWithLetterComboBox->addItem("Patronymic");
 
     startsWithLetterLabel = new QLabel("Starts with letter:");
-    startsWithLetterLineEdit = new QLineEdit();
+    alphabetComboBox = new QComboBox();
+
+    alphabetComboBox = new QComboBox();
+    QStringList alphabet;
+    alphabet.append("-");
+    for (char letter = 'A'; letter <= 'Z'; ++letter) {
+        alphabet.append(QString(letter));
+    }
+    alphabetComboBox->addItems(alphabet);
 
     compareComboBox = new QComboBox();
     compareComboBox->addItem("Course");
     compareComboBox->addItem("Group");
+
+    compareElementsComboBox = new QComboBox();
 
     leqCheckBox = new QCheckBox("And less");
     geqCheckBox = new QCheckBox("And greater");
@@ -83,9 +93,10 @@ MainWidget::MainWidget(QWidget *parent) {
     hFilterOptionsLayout = new QHBoxLayout();
     hFilterOptionsLayout->addWidget(startsWithLetterComboBox);
     hFilterOptionsLayout->addWidget(startsWithLetterLabel);
-    hFilterOptionsLayout->addWidget(startsWithLetterLineEdit);
+    hFilterOptionsLayout->addWidget(alphabetComboBox);
     hFilterOptionsLayout->addStretch();
     hFilterOptionsLayout->addWidget(compareComboBox);
+    hFilterOptionsLayout->addWidget(compareElementsComboBox);
     hFilterOptionsLayout->addWidget(leqCheckBox);
     hFilterOptionsLayout->addWidget(geqCheckBox);
 
@@ -103,27 +114,43 @@ MainWidget::MainWidget(QWidget *parent) {
     setLayout(widgetVLayout);
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
-    connect(deleteButton, &QPushButton::clicked, [this]() {
+    connect(deleteButton, &QPushButton::clicked, this ,[this]() {
             QModelIndexList selectedIndexes = tableView->selectionModel()->selectedRows();
 
             for (int i = selectedIndexes.count() - 1; i >= 0; --i) {
                 model->removeRow(selectedIndexes.at(i).row());
             }
         });
-    connect(deleteAllButton, &QPushButton::clicked, [this]() {
+    connect(deleteAllButton, &QPushButton::clicked,this, [this]() {
             model->clear();
         });
 }
 
 MainWidget::~MainWidget() {
+    delete addButton;
+    delete deleteButton;
+    delete deleteAllButton;
     delete disconnectButton;
     delete responseLabel;
     delete hHeaderLayout;
     delete hResponseLabelLayout;
+
     delete hTableViewLayout;
-    delete widgetVLayout;
     delete model;
     delete tableView;
+
+    delete startsWithLetterComboBox;
+    delete startsWithLetterLabel;
+    delete alphabetComboBox;
+
+    delete compareComboBox;
+    delete compareElementsComboBox;
+    delete geqCheckBox;
+    delete leqCheckBox;
+
+    delete addElementDialog;
+    delete hFilterOptionsLayout;
+    delete widgetVLayout;
 }
 
 void MainWidget::slotDisconnectButtonClicked() {
@@ -133,6 +160,16 @@ void MainWidget::slotDisconnectButtonClicked() {
     deleteButton->hide();
     deleteAllButton->hide();
     tableView->hide();
+
+    startsWithLetterComboBox->hide();
+    startsWithLetterLabel->hide();
+    alphabetComboBox->hide();
+
+    compareComboBox->hide();
+    compareElementsComboBox->hide();
+    geqCheckBox->hide();
+    leqCheckBox->hide();
+    networkManager->clearAccessCache();
     emit disconnectButtonClicked();
 }
 
@@ -143,6 +180,15 @@ void MainWidget::slotOkButtonDone() {
     deleteButton->show();
     deleteAllButton->show();
     tableView->show();
+
+    startsWithLetterComboBox->show();
+    startsWithLetterLabel->show();
+    alphabetComboBox->show();
+
+    compareComboBox->show();
+    compareElementsComboBox->show();
+    geqCheckBox->show();
+    leqCheckBox->show();
 }
 
 void MainWidget::slotAddButtonClicked() {

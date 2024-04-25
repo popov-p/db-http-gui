@@ -1,6 +1,7 @@
 from configparser import ConfigParser
 from passlib.context import CryptContext
 import os
+
 def init_config(config_file_path):
     config = ConfigParser()
 
@@ -8,7 +9,7 @@ def init_config(config_file_path):
         config.add_section("logging")
 
     log_dir = input("Input log directory: ")
-    print(f"--------------------------------------logdir: qwe {log_dir}")
+    #print(f"--------------------------------------logdir: qwe {log_dir}")
     config.set("logging", "dir", os.path.abspath(log_dir))
 
     log_severity = ''

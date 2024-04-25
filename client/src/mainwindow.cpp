@@ -10,10 +10,14 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    setGeometry(100,100, 800, 600);
+    setGeometry(100, 100, 800, 600);
+
+    networkManager = new QNetworkAccessManager();
+    authenticator = new QAuthenticator();
+
     connectWidget = new ConnectWidget();
-    mainWidget = new MainWidget();
-    settingsDialog = new SettingsDialog();
+    mainWidget = new MainWidget(networkManager, authenticator);
+    settingsDialog = new SettingsDialog(networkManager, authenticator);
 
     centralStackedWidget = new QStackedWidget();
     setCentralWidget(centralStackedWidget);
@@ -36,10 +40,12 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
+    delete networkManager;
+    delete authenticator;
     delete connectWidget;
     delete mainWidget;
-    delete centralStackedWidget;
-    delete settingsDialog;
+    //delete centralStackedWidget;
+    //delete settingsDialog;
 }
 
 void MainWindow::slotConnectButtonClicked() {

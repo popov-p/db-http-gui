@@ -1,9 +1,15 @@
+#include <QNetworkReply>
 #include "settings-dialog.h"
 
 
-SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
+SettingsDialog::SettingsDialog(QNetworkAccessManager* networkManager,
+                               QAuthenticator *authenticator, QWidget *parent) : QDialog(parent),
+                                                                                 networkManager(networkManager),
+                                                                                 authenticator(authenticator) {
+
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
+
 
     credentialsValidator = new NoSpcValidator();
 
@@ -67,7 +73,13 @@ SettingsDialog::SettingsDialog(QWidget *parent) : QDialog(parent) {
             this, &SettingsDialog::slotOkButtonDone);
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotCancelButtonClicked);
-
+    connect(networkManager, &QNetworkAccessManager::authenticationRequired, this,
+            [& ,this](QNetworkReply *reply, QAuthenticator *authenticator) {
+                LOG(INFO) << "Authentication required! "
+                          << reply->url().toString().toStdString();
+                authenticator->setUser(usernameLineEdit->text());
+                authenticator->setPassword(passwordLineEdit->text());
+            });
 }
 
 SettingsDialog::~SettingsDialog() {
@@ -95,16 +107,37 @@ SettingsDialog::~SettingsDialog() {
 void SettingsDialog::slotOkButtonDone() {
     if(!usernameLineEdit->text().isEmpty() &&
        !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
+
+        QNetworkRequest request(QUrl("http://127.0.0.1:8000/auth"));
+        QNetworkReply *reply = networkManager->get(request);
+
+        QObject::connect(reply, &QNetworkReply::finished, [&, reply](){
+            if(reply->error() == QNetworkReply::NoError) {
+                LOG(INFO) << reply->readAll().toStdString();
+                usernameLineEdit->clear();
+                passwordLineEdit->clear();
+                logdirLineEdit->setText("../log");
+                settingsStatus->clear();
+                hide();
+                LOG(INFO) << "Qt UI: SettingsDialog ok button done";
+                emit okButtonDone();
+            } else if (reply->error() == QNetworkReply::ContentAccessDenied) {
+                LOG(ERROR) << reply->errorString().toStdString();
+                networkManager->clearAccessCache();
+                settingsStatus->setText("Auth failed");
+            }
+            else {
+                LOG(ERROR) << reply->errorString().toStdString();
+                networkManager->clearAccessCache();
+                settingsStatus->setText("Error while connection");
+
+            }
+            reply->deleteLater();
+        });
+        /*TODO: fix this later*/
         //dumpCfgIni(client.get_cfg_path());
         //client.load_cfg();
         //client.start_logging();
-        usernameLineEdit->clear();
-        passwordLineEdit->clear();
-        logdirLineEdit->setText("../log");
-        settingsStatus->clear();
-        hide();
-        LOG(INFO) << "Qt: SettingsDialog ok button done";
-        emit okButtonDone();
     }
     else {
         settingsStatus->setText("set valid parameters");
