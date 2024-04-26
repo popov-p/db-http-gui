@@ -4,6 +4,8 @@
 
 #include "settings-dialog.h"
 #include "connect-widget.h"
+#include "backend-manager.h"
+
 #include "main-widget.h"
 #include <QMainWindow>
 #include <QPushButton>
@@ -27,16 +29,19 @@ public:
 
 public slots:
     void slotConnectButtonClicked();
-private slots:
-    void slotDisconnectButtonClicked();
-    void slotConnectionSuccessful();
 private:
     QStackedWidget *centralStackedWidget;
     ConnectWidget *connectWidget;
     MainWidget *mainWidget;
     SettingsDialog *settingsDialog;
-    QNetworkAccessManager *networkManager;
-    QAuthenticator *authenticator;
+
+    void initConnections();
+    void initCentralStackedWidget();
+
+    BackendManager * backendManager;
+private slots:
+    void slotDisconnectButtonClicked();
+    void slotConnectionSuccessful();
 };
 
 

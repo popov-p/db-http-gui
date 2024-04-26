@@ -1,6 +1,8 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
+#include "backend-manager.h"
+
 #include <glog/logging.h>
 
 #include <QDialog>
@@ -32,13 +34,9 @@ public:
 class SettingsDialog : public QDialog {
     Q_OBJECT
 public:
-    SettingsDialog(QNetworkAccessManager* networkManager,
-                   QAuthenticator *authenticator, QWidget *parent = nullptr);
+    SettingsDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void dumpCfgIni(std::string cfg_path);
     ~SettingsDialog();
-signals:
-    void okButtonDone();
-    void cancelButtonClicked();
 public slots:
     void slotOkButtonDone();
     void slotCancelButtonClicked();
@@ -62,8 +60,19 @@ private:
     QHBoxLayout *hSettingsStatusLayout;
     QVBoxLayout *verticalDialogLayout;
     NoSpcValidator *credentialsValidator;
-    QNetworkAccessManager* networkManager = nullptr;
-    QAuthenticator *authenticator = nullptr;
+    BackendManager *backendManager = nullptr;
+
+    void initUsernameLayout();
+    void initPasswordLayout();
+    void initLogDirLayout();
+    void initLogLayout();
+    void initButtonLayout();
+    void initSettingsStatusLayout();
+    void initVerticalDialogLayout();
+    void initConnections();
+signals:
+    void okButtonDone();
+    void cancelButtonClicked();
 };
 
 

@@ -1,9 +1,8 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List, Union
 
 
 class Student(BaseModel):
-    id: int
     last_name: str
     first_name: str
     patronymic: str
@@ -11,17 +10,6 @@ class Student(BaseModel):
     photo: str
     course: int
     group: str
-
-
-class StudentCreate(BaseModel):
-    last_name: str
-    first_name: str
-    patronymic: str
-    year: int
-    photo: str
-    course: int
-    group: str
-
 
 class StudentUpdate(BaseModel):
     last_name: Optional[str] = None
@@ -31,3 +19,8 @@ class StudentUpdate(BaseModel):
     photo: Optional[str] = None
     course: Optional[int] = None
     group: Optional[str] = None
+
+class FieldsRequest(BaseModel):
+    total:List[str]
+    alphabetic: List[str]
+    comparable: List[str]

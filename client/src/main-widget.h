@@ -19,14 +19,17 @@
 #include <QNetworkAccessManager>
 #include <QAuthenticator>
 #include "add-element-dialog.h"
-
+#include "backend-manager.h"
 
 class MainWidget : public QWidget {
     Q_OBJECT
 public:
-    MainWidget(QNetworkAccessManager *networkManager,
-               QAuthenticator *authenticator, QWidget *parent = nullptr);
+    MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
     ~MainWidget();
+
+public slots:
+    void handleSettingsDialogOkButtonDone();
+
 private:
     AddElementDialog *addElementDialog;
     QVBoxLayout *widgetVLayout;
@@ -54,10 +57,7 @@ private:
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
 
-    QNetworkAccessManager *networkManager = nullptr;
-    QAuthenticator *authenticator = nullptr;
-    QMap<QString, QPair<QUrl, QNetworkReply*>> *requestMap; /*TODO: upd this later*/
-
+    BackendManager *backendManager = nullptr;
     void initHeaderLayout();
     void initResponseLabelLayout();
     void initTableViewLayout();
@@ -65,14 +65,10 @@ private:
     void initWidgetVLayout();
     void initConnections();
 
-public slots:
-    void handleSettingsDialogOkButtonDone();
 private slots:
     void slotDisconnectButtonClicked();
     void slotAddButtonClicked();
     void slotDeleteSelecterRows();
-    //void slotFetchAllStudents();
-    //void handleAllHeaderOrder();
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

@@ -5,26 +5,24 @@
 #include <QJsonObject>
 #include <QDebug>
 
-MainWidget::MainWidget(QNetworkAccessManager* networkManager,
-                       QAuthenticator *authenticator, QWidget *parent) : networkManager(networkManager),
-                                                                         authenticator(authenticator) /*TODO: Fix this*/ {
-    addElementDialog = new AddElementDialog(networkManager);
+MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : backendManager(backendManager) {
+    addElementDialog = new AddElementDialog(backendManager);
 
     initHeaderLayout();
     initResponseLabelLayout();
     initTableViewLayout();
     initFilterOptionsLayout();
     initWidgetVLayout();
-
-
     initConnections();
 }
 void MainWidget::slotDisconnectButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot disconnect button clicked";
-    disconnectButton->hide();
     addButton->hide();
     deleteSelectedButton->hide();
     deleteAllButton->hide();
+    usernameLabel->hide();
+    disconnectButton->hide();
+    responseLabel->setText("Disconnected!");
     tableView->hide();
 
     startsWithLetterComboBox->hide();
@@ -35,9 +33,8 @@ void MainWidget::slotDisconnectButtonClicked() {
     compareElementsComboBox->hide();
     geqCheckBox->hide();
     leqCheckBox->hide();
-    usernameLabel->hide();
-    networkManager->clearAccessCache();
-    responseLabel->setText("Disconnected!");
+    //networkManager->clearAccessCache();
+
     emit disconnectButtonClicked();
 }
 

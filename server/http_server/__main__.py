@@ -8,7 +8,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import StudentCreate, StudentUpdate
+from server.http_server.schemas import StudentUpdate, FieldsRequest
 from server.http_server import crud
 import os
 from configparser import ConfigParser
@@ -54,7 +54,13 @@ def get_db():
 def root():
     return {"message": "Hello World"}
 
-
+@app.get("/fields", response_model=FieldsRequest)
+def get_fields(db: Session = Depends(get_db)):
+    print(db.query(Student).first().__dict__.keys())
+    total = Student.__table__.columns.keys()
+    alphabetic = ["last_name, first_name", "patronymic"]
+    comparable = ["year","course", "group"]
+    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable)
 
 @app.post("/auth")
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
@@ -65,8 +71,8 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)):
     return {"message": "Welcome, authorized user!"}
 
 # Create student
-@app.post("/create-student/", response_model=schemas.StudentCreate)
-def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
+@app.post("/create-student/", response_model=schemas.Student)
+def create_student(student: schemas.Student, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
 @app.get("/students/")
 

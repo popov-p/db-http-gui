@@ -1,35 +1,43 @@
 #include "add-element-dialog.h"
 #include <QDebug>
 
-AddElementDialog::AddElementDialog(QNetworkAccessManager* networkManager, QWidget *parent) : QDialog(parent) {
+AddElementDialog::AddElementDialog(BackendManager *backendManager, QWidget *parent) : QDialog(parent), backendManager(backendManager) {
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
 
+    initButtonLayout();
+    initSettingsStatusLayout();
+    initVerticalDialogLayout();
+    initConnections();
+}
+
+void AddElementDialog::initButtonLayout() {
     okDialogButton = new QPushButton("Ok");
     cancelDialogButton = new QPushButton("Cancel");
-
-    settingsStatus = new QLabel();
-    settingsStatus->setAlignment(Qt::AlignCenter);
-
     hButtonLayout = new QHBoxLayout();
     hButtonLayout->addWidget(okDialogButton);
     hButtonLayout->addWidget(cancelDialogButton);
+}
 
-
+void AddElementDialog::initSettingsStatusLayout() {
+    settingsStatus = new QLabel();
+    settingsStatus->setAlignment(Qt::AlignCenter);
     hSettingsStatusLayout = new QHBoxLayout();
     hSettingsStatusLayout->addWidget(settingsStatus);
+}
 
+void AddElementDialog::initVerticalDialogLayout() {
     verticalDialogLayout = new QVBoxLayout();
     verticalDialogLayout->addLayout(hSettingsStatusLayout);
     verticalDialogLayout->addLayout(hButtonLayout);
-
     setLayout(verticalDialogLayout);
+}
 
+void AddElementDialog::initConnections() {
     connect(okDialogButton, &QPushButton::clicked,
             this, &AddElementDialog::slotOkButtonDone);
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &AddElementDialog::slotCancelButtonClicked);
-
 }
 
 AddElementDialog::~AddElementDialog() {

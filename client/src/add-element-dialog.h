@@ -12,17 +12,14 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSettings>
-#include <QNetworkAccessManager>
+#include <backend-manager.h>
 
 class AddElementDialog : public QDialog {
     Q_OBJECT
 public:
-    AddElementDialog(QNetworkAccessManager* networkManager, QWidget *parent = nullptr);
+    AddElementDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void dumpCfgIni(std::string cfg_path);
     ~AddElementDialog();
-signals:
-    void okButtonDone();
-    void cancelButtonClicked();
 public slots:
     void slotOkButtonDone();
     void slotCancelButtonClicked();
@@ -33,6 +30,15 @@ private:
     QHBoxLayout *hButtonLayout;
     QHBoxLayout *hSettingsStatusLayout;
     QVBoxLayout *verticalDialogLayout;
+    BackendManager *backendManager = nullptr;
+
+    void initButtonLayout();
+    void initSettingsStatusLayout();
+    void initVerticalDialogLayout();
+    void initConnections();
+signals:
+    void okButtonDone();
+    void cancelButtonClicked();
 };
 
 #endif

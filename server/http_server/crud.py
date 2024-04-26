@@ -1,7 +1,7 @@
 from server.http_server import models, schemas
 from sqlalchemy.orm import Session
 
-def create_student(db: Session, student: schemas.StudentCreate):
+def create_student(db: Session, student: schemas.Student):
     db_student = models.Student(**student.dict())
     db.add(db_student)
     db.commit()

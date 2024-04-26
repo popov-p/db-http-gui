@@ -31,6 +31,8 @@ set(PROJECT_SOURCES
         src/settings-dialog.h
         src/add-element-dialog.cpp
         src/add-element-dialog.h
+        src/backend-manager.h
+        src/backend-manager.cpp
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)

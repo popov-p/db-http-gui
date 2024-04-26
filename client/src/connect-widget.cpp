@@ -5,27 +5,42 @@
 
 
 ConnectWidget::ConnectWidget(QWidget *parent) {
-    widgetVLayout = new QVBoxLayout();
+    initConnectLayout();
+    initConnectStatusLayout();
+    initwidgetVLaoyut();
+    initConnections();
+}
+
+void ConnectWidget::initConnectLayout() {
     connectButton = new QPushButton("Connect");
-    connectButton->setFixedSize(300, 50);
-
     hConnectLayout = new QHBoxLayout();
+
+    connectButton->setFixedSize(300, 50);
     hConnectLayout->addWidget(connectButton);
+}
 
-    hConnectStatusLayout = new QHBoxLayout();
-    hConnectStatusLayout->setAlignment(Qt::AlignCenter);
+void ConnectWidget::initConnectStatusLayout() {
     connectStatus = new QLabel();
-    hConnectStatusLayout->addWidget(connectStatus);
+    hConnectStatusLayout = new QHBoxLayout();
 
+    hConnectStatusLayout->setAlignment(Qt::AlignCenter);
+    hConnectStatusLayout->addWidget(connectStatus);
+}
+
+void ConnectWidget::initwidgetVLaoyut() {
+    widgetVLayout = new QVBoxLayout();
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hConnectLayout);
     widgetVLayout->addLayout(hConnectStatusLayout);
     widgetVLayout->addStretch();
 
     setLayout(widgetVLayout);
+}
 
+void ConnectWidget::initConnections() {
     connect(connectButton, &QPushButton::clicked, this, &ConnectWidget::connectButtonClicked);
 }
+
 
 ConnectWidget::~ConnectWidget() {
     delete connectButton;

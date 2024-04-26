@@ -25,6 +25,11 @@ private:
     QLabel *connectStatus;
     QHBoxLayout *hConnectLayout;
     QHBoxLayout *hConnectStatusLayout;
+    void initConnectLayout();
+    void initConnectStatusLayout();
+    void initwidgetVLaoyut();
+    void initConnections();
+
 signals:
     void connectButtonClicked();
     void connectionSuccessful();

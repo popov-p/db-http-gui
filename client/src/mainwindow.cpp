@@ -6,46 +6,17 @@
 #include <QIntValidator>
 #include <QComboBox>
 
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     setGeometry(100, 100, 800, 600);
-
-    networkManager = new QNetworkAccessManager();
-    authenticator = new QAuthenticator();
-
+    backendManager = new BackendManager();
     connectWidget = new ConnectWidget();
-    mainWidget = new MainWidget(networkManager, authenticator);
-    settingsDialog = new SettingsDialog(networkManager, authenticator);
+    mainWidget = new MainWidget(backendManager);
+    settingsDialog = new SettingsDialog(backendManager);
 
-    centralStackedWidget = new QStackedWidget();
-    setCentralWidget(centralStackedWidget);
-    centralStackedWidget->addWidget(connectWidget);
-    centralStackedWidget->addWidget(mainWidget);
-
-    connect(connectWidget, &ConnectWidget::connectButtonClicked,
-            this, &MainWindow::slotConnectButtonClicked);
-    connect(connectWidget, &ConnectWidget::connectionSuccessful,
-            this, &MainWindow::slotConnectionSuccessful);
-    connect(settingsDialog, &SettingsDialog::okButtonDone,
-            mainWidget, &MainWidget::handleSettingsDialogOkButtonDone);
-    connect(settingsDialog, &SettingsDialog::okButtonDone,
-            connectWidget, &ConnectWidget::slotOkButtonDone);
-    connect(mainWidget, &MainWidget::disconnectButtonClicked,
-            this, &MainWindow::slotDisconnectButtonClicked);
-    connect (mainWidget, &MainWidget::disconnectButtonClicked,
-            connectWidget, &ConnectWidget::slotDisconnectButtonClicked);
-}
-
-MainWindow::~MainWindow()
-{
-    delete networkManager;
-    delete authenticator;
-    delete connectWidget;
-    delete mainWidget;
-    delete centralStackedWidget;
-    delete settingsDialog;
+    initCentralStackedWidget();
+    initConnections();
 }
 
 void MainWindow::slotConnectButtonClicked() {
@@ -71,5 +42,35 @@ void MainWindow::slotConnectionSuccessful() {
         timer->deleteLater();
     });
     timer->start(500);
+}
 
+void MainWindow::initCentralStackedWidget() {
+    centralStackedWidget = new QStackedWidget();
+    setCentralWidget(centralStackedWidget);
+    centralStackedWidget->addWidget(connectWidget);
+    centralStackedWidget->addWidget(mainWidget);
+}
+
+void MainWindow::initConnections() {
+    connect(connectWidget, &ConnectWidget::connectButtonClicked,
+            this, &MainWindow::slotConnectButtonClicked);
+    connect(connectWidget, &ConnectWidget::connectionSuccessful,
+            this, &MainWindow::slotConnectionSuccessful);
+    connect(settingsDialog, &SettingsDialog::okButtonDone,
+            mainWidget, &MainWidget::handleSettingsDialogOkButtonDone);
+    connect(settingsDialog, &SettingsDialog::okButtonDone,
+            connectWidget, &ConnectWidget::slotOkButtonDone);
+    connect(mainWidget, &MainWidget::disconnectButtonClicked,
+            this, &MainWindow::slotDisconnectButtonClicked);
+    connect (mainWidget, &MainWidget::disconnectButtonClicked,
+            connectWidget, &ConnectWidget::slotDisconnectButtonClicked);
+}
+
+MainWindow::~MainWindow()
+{
+    delete backendManager;
+    delete connectWidget;
+    delete mainWidget;
+    delete centralStackedWidget;
+    delete settingsDialog;
 }
