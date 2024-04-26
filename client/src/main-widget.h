@@ -32,7 +32,7 @@ private:
     QVBoxLayout *widgetVLayout;
     QPushButton *disconnectButton;
     QPushButton *addButton;
-    QPushButton *deleteButton;
+    QPushButton *deleteSelectedButton;
     QPushButton *deleteAllButton;
     QLabel *responseLabel;
     QLabel *usernameLabel;
@@ -56,12 +56,23 @@ private:
 
     QNetworkAccessManager *networkManager = nullptr;
     QAuthenticator *authenticator = nullptr;
+    QMap<QString, QPair<QUrl, QNetworkReply*>> *requestMap; /*TODO: upd this later*/
+
+    void initHeaderLayout();
+    void initResponseLabelLayout();
+    void initTableViewLayout();
+    void initFilterOptionsLayout();
+    void initWidgetVLayout();
+    void initConnections();
 
 public slots:
-    void slotOkButtonDone();
+    void handleSettingsDialogOkButtonDone();
 private slots:
     void slotDisconnectButtonClicked();
     void slotAddButtonClicked();
+    void slotDeleteSelecterRows();
+    //void slotFetchAllStudents();
+    //void handleAllHeaderOrder();
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

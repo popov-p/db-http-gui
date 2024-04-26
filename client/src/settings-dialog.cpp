@@ -112,7 +112,7 @@ void SettingsDialog::slotOkButtonDone() {
         QNetworkRequest request(QUrl("http://127.0.0.1:8000/auth"));
         QNetworkReply *reply = networkManager->post(request, QByteArray());
 
-        QObject::connect(reply, &QNetworkReply::finished, [&, reply](){
+        QObject::connect(reply, &QNetworkReply::finished, this, [&, reply](){
             if(reply->error() == QNetworkReply::NoError) {
                 LOG(INFO) << reply->readAll().toStdString();
                 usernameLineEdit->clear();

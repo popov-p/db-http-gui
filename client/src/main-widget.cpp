@@ -1,81 +1,195 @@
 #include "main-widget.h"
+#include <QNetworkReply>
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 #include <QDebug>
 
 MainWidget::MainWidget(QNetworkAccessManager* networkManager,
                        QAuthenticator *authenticator, QWidget *parent) : networkManager(networkManager),
-                                                                         authenticator(authenticator) {
+                                                                         authenticator(authenticator) /*TODO: Fix this*/ {
     addElementDialog = new AddElementDialog(networkManager);
-    widgetVLayout = new QVBoxLayout();
 
-    disconnectButton = new QPushButton("Disconnect");
-    disconnectButton->setFixedSize(100, 50);
+    initHeaderLayout();
+    initResponseLabelLayout();
+    initTableViewLayout();
+    initFilterOptionsLayout();
+    initWidgetVLayout();
 
+
+    initConnections();
+}
+void MainWidget::slotDisconnectButtonClicked() {
+    LOG(INFO) << "Qt: MainWidget slot disconnect button clicked";
+    disconnectButton->hide();
+    addButton->hide();
+    deleteSelectedButton->hide();
+    deleteAllButton->hide();
+    tableView->hide();
+
+    startsWithLetterComboBox->hide();
+    startsWithLetterLabel->hide();
+    alphabetComboBox->hide();
+
+    compareComboBox->hide();
+    compareElementsComboBox->hide();
+    geqCheckBox->hide();
+    leqCheckBox->hide();
+    usernameLabel->hide();
+    networkManager->clearAccessCache();
+    responseLabel->setText("Disconnected!");
+    emit disconnectButtonClicked();
+}
+
+void MainWidget::slotDeleteSelecterRows() {
+    QModelIndexList selectedIndexes = tableView->selectionModel()->selectedRows();
+    for (int i = selectedIndexes.count() - 1; i >= 0; --i) {
+        model->removeRow(selectedIndexes.at(i).row());
+    }
+}
+
+void MainWidget::handleSettingsDialogOkButtonDone() {
+    LOG(INFO) << "Qt: MainWidget handled slot connect button clicked";
+    disconnectButton->show();
+    addButton->show();
+    deleteSelectedButton->show();
+    deleteAllButton->show();
+    tableView->show();
+
+    startsWithLetterComboBox->show();
+    startsWithLetterLabel->show();
+    alphabetComboBox->show();
+
+    compareComboBox->show();
+    compareElementsComboBox->show();
+    geqCheckBox->show();
+    leqCheckBox->show();
+    responseLabel->clear();
+    //QNetworkRequest request(QUrl("http://127.0.0.1:8000/students"));
+    //QNetworkReply *allStudentsReply = networkManager->get(request);
+
+    //connect(allStudentsReply, &QNetworkReply::finished, this, &MainWidget::slotFetchAllStudents);
+}
+
+void MainWidget::slotAddButtonClicked() {
+    LOG(INFO) << "Qt: MainWidget slot add button clicked";
+    addElementDialog->exec();
+}
+
+// void MainWidget::slotFetchAllStudents() {
+//     if (allStudentsReply->error() == QNetworkReply::NoError) {
+//         QByteArray responseData = allStudentsReply->readAll();
+//         QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
+//         if (!jsonDocument.isNull() && jsonDocument.isArray()) {
+//             QList <QString> headers;
+//             QJsonArray jsonArray = jsonDocument.array();
+//             QJsonObject jsonObject = jsonArray.first().toObject();
+//             for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it) {
+//                 headers.append(it.key());
+//             }
+//             QJsonObject sortedJsonObject;
+//             for (const QString& header : headers) {
+//                 sortedJsonObject[header] = jsonObject.value(header);
+//             }
+//             model->setHorizontalHeaderLabels(headers);
+//             //jsonDocument = QJsonDocument(sortedJsonObject);
+//             foreach (const QJsonValue &value, jsonArray) {
+//                 if (value.isObject()) {
+//                     QJsonObject jsonObject = value.toObject();
+//                     int id = jsonObject["id"].toInt();
+//                     QString last_name = jsonObject["last_name"].toString();
+//                     QString first_name = jsonObject["first_name"].toString();
+//                     QString patronymic = jsonObject["patronymic"].toString();
+//                     int year = jsonObject["year"].toInt();
+//                     QString photo = jsonObject["photo"].toString();
+//                     int course = jsonObject["course"].toInt();
+//                     QString group = jsonObject["group"].toString();
+//                     /*!!! REWRITE THIS !!!*/
+//                     QList<QStandardItem*> rowItems;
+//                     rowItems << new QStandardItem(QString::number(id));
+//                     rowItems << new QStandardItem(last_name);
+//                     rowItems << new QStandardItem(first_name);
+//                     rowItems << new QStandardItem(patronymic);
+//                     rowItems << new QStandardItem(QString::number(year));
+//                     rowItems << new QStandardItem(photo);
+//                     rowItems << new QStandardItem(QString::number(course));
+//                     rowItems << new QStandardItem(group);
+
+//                     model->appendRow(rowItems);
+//                 }
+//             }
+//         } else {
+//             responseLabel->setText("DB is empty");
+//         }
+//     }
+//     else {
+//         qDebug() << "Error:" << allStudentsReply->errorString();
+//     }
+
+//     allStudentsReply->deleteLater();
+// }
+//void MainWidget::handleAllHeaderOrder() {
+
+//}
+
+void MainWidget::initHeaderLayout() {
     addButton = new QPushButton("Add");
-    addButton->setFixedSize(100, 50);
-
-    deleteButton = new QPushButton("Delete \n selected");
-    deleteButton->setFixedSize(100, 50);
-
+    deleteSelectedButton = new QPushButton("Delete \n selected");
     deleteAllButton = new QPushButton("Delete all");
-    deleteAllButton->setFixedSize(100, 50);
-
-    qDebug() << authenticator->user();
-
+    disconnectButton = new QPushButton("Disconnect");
     usernameLabel = new QLabel("upd later");
-
     hHeaderLayout = new QHBoxLayout();
+
+    QList<QPushButton*> buttons = {addButton, deleteSelectedButton, deleteAllButton, disconnectButton};
+    for (QPushButton *button : buttons) {
+        button->setFixedSize(100, 50);
+    }
+
     hHeaderLayout->addWidget(addButton);
-    hHeaderLayout->addWidget(deleteButton);
+    hHeaderLayout->addWidget(deleteSelectedButton);
     hHeaderLayout->addWidget(deleteAllButton);
     hHeaderLayout->addStretch();
     hHeaderLayout->addWidget(usernameLabel);
     hHeaderLayout->addWidget(disconnectButton);
+}
 
+void MainWidget::initResponseLabelLayout() {
     responseLabel = new QLabel("response status will be here");
+    hResponseLabelLayout = new QHBoxLayout();
+
     responseLabel->setFixedSize(300, 20);
     responseLabel->setAlignment(Qt::AlignCenter);
 
-
-    hResponseLabelLayout = new QHBoxLayout();
     hResponseLabelLayout->addWidget(responseLabel);
+}
 
-    /*database layout preparations*/
+void MainWidget::initTableViewLayout() {
     model = new QStandardItemModel();
     tableView = new QTableView();
-    tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tableView->setModel(model);
-    model->setHorizontalHeaderLabels(QStringList() << "Name" << "Values");
-    tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
-    tableView->horizontalHeader()->setStretchLastSection(true);
-    //test filling
-    for (int row = 0; row < 10; ++row) {
-        for (int col = 0; col < 2; ++col) {
-            QString data = QString("Row %1, Col %2").arg(row).arg(col);
-            QStandardItem *item = new QStandardItem(data);
-            item->setEditable(false);
-            model->setItem(row, col, item);
-        }
-    } //this will be deleted later
-    QStringList names = {"Петров", "Иванов", "Попов", "Сидоров", "Петровский"};
-    for (int row = 0; row < names.size(); ++row) {
-            QModelIndex index = model->index(row, 0, QModelIndex());
-            model->setData(index, names[row]);
-        }
-    tableView->resizeColumnsToContents();
-
     hTableViewLayout = new QHBoxLayout();
+
+    tableView->setModel(model);
+    tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableView->resizeColumnsToContents();
+    tableView->horizontalHeader()->setStretchLastSection(true);
+
     hTableViewLayout->addWidget(tableView);
+}
 
-
+void MainWidget::initFilterOptionsLayout() {
     startsWithLetterComboBox = new QComboBox();
-    startsWithLetterComboBox->addItem("Last name");
+    startsWithLetterLabel = new QLabel("Starts with letter:");
+    alphabetComboBox = new QComboBox();
+    compareComboBox = new QComboBox();
+    compareElementsComboBox = new QComboBox();
+    leqCheckBox = new QCheckBox("And less");
+    geqCheckBox = new QCheckBox("And greater");
+    hFilterOptionsLayout = new QHBoxLayout();
+
+    startsWithLetterComboBox->addItem("Last name"); /*TODO: Fix this with a get*/
     startsWithLetterComboBox->addItem("First name");
     startsWithLetterComboBox->addItem("Patronymic");
 
-    startsWithLetterLabel = new QLabel("Starts with letter:");
-    alphabetComboBox = new QComboBox();
-
-    alphabetComboBox = new QComboBox();
     QStringList alphabet;
     alphabet.append("-");
     for (char letter = 'A'; letter <= 'Z'; ++letter) {
@@ -83,16 +197,10 @@ MainWidget::MainWidget(QNetworkAccessManager* networkManager,
     }
     alphabetComboBox->addItems(alphabet);
 
-    compareComboBox = new QComboBox();
-    compareComboBox->addItem("Course");
+
+    compareComboBox->addItem("Course"); /*TODO: Fix this !!*/
     compareComboBox->addItem("Group");
 
-    compareElementsComboBox = new QComboBox();
-
-    leqCheckBox = new QCheckBox("And less");
-    geqCheckBox = new QCheckBox("And greater");
-
-    hFilterOptionsLayout = new QHBoxLayout();
     hFilterOptionsLayout->addWidget(startsWithLetterComboBox);
     hFilterOptionsLayout->addWidget(startsWithLetterLabel);
     hFilterOptionsLayout->addWidget(alphabetComboBox);
@@ -101,33 +209,32 @@ MainWidget::MainWidget(QNetworkAccessManager* networkManager,
     hFilterOptionsLayout->addWidget(compareElementsComboBox);
     hFilterOptionsLayout->addWidget(leqCheckBox);
     hFilterOptionsLayout->addWidget(geqCheckBox);
+}
 
 
+void MainWidget::initWidgetVLayout() {
+    widgetVLayout = new QVBoxLayout();
     widgetVLayout->addLayout(hHeaderLayout);
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hResponseLabelLayout);
     widgetVLayout->addLayout(hTableViewLayout);
     widgetVLayout->addLayout(hFilterOptionsLayout);
     widgetVLayout->addStretch();
-
     setLayout(widgetVLayout);
+}
+
+void MainWidget::initConnections() {
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
-    connect(deleteButton, &QPushButton::clicked, this ,[this]() {
-            QModelIndexList selectedIndexes = tableView->selectionModel()->selectedRows();
-
-            for (int i = selectedIndexes.count() - 1; i >= 0; --i) {
-                model->removeRow(selectedIndexes.at(i).row());
-            }
-        });
+    connect(deleteSelectedButton, &QPushButton::clicked, this, &MainWidget::slotDeleteSelecterRows);
     connect(deleteAllButton, &QPushButton::clicked,this, [this]() {
-            model->clear();
-        });
+        model->clear();
+    });
 }
 
 MainWidget::~MainWidget() {
     delete addButton;
-    delete deleteButton;
+    delete deleteSelectedButton;
     delete deleteAllButton;
     delete disconnectButton;
     delete usernameLabel;
@@ -152,52 +259,6 @@ MainWidget::~MainWidget() {
     delete hFilterOptionsLayout;
     delete widgetVLayout;
 }
-
-void MainWidget::slotDisconnectButtonClicked() {
-    LOG(INFO) << "Qt: MainWidget slot disconnect button clicked";
-    disconnectButton->hide();
-    addButton->hide();
-    deleteButton->hide();
-    deleteAllButton->hide();
-    tableView->hide();
-
-    startsWithLetterComboBox->hide();
-    startsWithLetterLabel->hide();
-    alphabetComboBox->hide();
-
-    compareComboBox->hide();
-    compareElementsComboBox->hide();
-    geqCheckBox->hide();
-    leqCheckBox->hide();
-    networkManager->clearAccessCache();
-    emit disconnectButtonClicked();
-}
-
-void MainWidget::slotOkButtonDone() {
-    LOG(INFO) << "Qt: MainWidget slot connect button clicked";
-    disconnectButton->show();
-    addButton->show();
-    deleteButton->show();
-    deleteAllButton->show();
-    tableView->show();
-
-    startsWithLetterComboBox->show();
-    startsWithLetterLabel->show();
-    alphabetComboBox->show();
-
-    compareComboBox->show();
-    compareElementsComboBox->show();
-    geqCheckBox->show();
-    leqCheckBox->show();
-}
-
-void MainWidget::slotAddButtonClicked() {
-    LOG(INFO) << "Qt: MainWidget slot add button clicked";
-    addElementDialog->exec();
-}
-
-
-
 
 
 

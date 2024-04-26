@@ -68,6 +68,8 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)):
 @app.post("/create-student/", response_model=schemas.StudentCreate)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
+@app.get("/students/")
+
 
 # Read student by ID
 @app.get("/students/{student_id}", response_model=schemas.Student)
@@ -77,7 +79,7 @@ def read_student(student_id: int, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Student not found")
     return db_student
 
-@app.get("/students/", response_model=List[schemas.Student])
+@app.get("/students", response_model=List[schemas.Student])
 def get_all_students(db: Session = Depends(get_db)):
     return crud.get_all_students(db)
 

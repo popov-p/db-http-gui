@@ -40,14 +40,15 @@ void ConnectWidget::slotOkButtonDone() {
     connectButton->hide();
     try {
         connectStatus->setText("Connected!");
-        LOG(INFO) << "Qt: connection with broker established";
+        LOG(INFO) << "Qt: connection with db established";
         emit connectionSuccessful();
     }
-    catch(...) {
+    catch(...) { /*TODO: Fix this, connection establishes
+                         in a different way, so catch(...) is no more required*/
         LOG(ERROR) << "Qt: connection to broker failed";
         connectStatus->setText("Connection Failed!");
         QTimer *timer = new QTimer();
-        connect(timer, &QTimer::timeout, [this, timer]() {
+        connect(timer, &QTimer::timeout, this, [this, timer]() {
             connectStatus->setText("");
             connectButton->show();
             timer->deleteLater();

@@ -29,7 +29,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(connectWidget, &ConnectWidget::connectionSuccessful,
             this, &MainWindow::slotConnectionSuccessful);
     connect(settingsDialog, &SettingsDialog::okButtonDone,
-            mainWidget, &MainWidget::slotOkButtonDone);
+            mainWidget, &MainWidget::handleSettingsDialogOkButtonDone);
     connect(settingsDialog, &SettingsDialog::okButtonDone,
             connectWidget, &ConnectWidget::slotOkButtonDone);
     connect(mainWidget, &MainWidget::disconnectButtonClicked,
@@ -44,8 +44,8 @@ MainWindow::~MainWindow()
     delete authenticator;
     delete connectWidget;
     delete mainWidget;
-    //delete centralStackedWidget;
-    //delete settingsDialog;
+    delete centralStackedWidget;
+    delete settingsDialog;
 }
 
 void MainWindow::slotConnectButtonClicked() {
