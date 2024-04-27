@@ -45,7 +45,7 @@ void MainWidget::slotDeleteSelecterRows() {
     }
 }
 
-void MainWidget::handleSettingsDialogOkButtonDone() {
+void MainWidget::slotAuthSuccessful() {
     LOG(INFO) << "Qt: MainWidget handled slot connect button clicked";
     disconnectButton->show();
     addButton->show();
@@ -62,10 +62,6 @@ void MainWidget::handleSettingsDialogOkButtonDone() {
     geqCheckBox->show();
     leqCheckBox->show();
     responseLabel->clear();
-    //QNetworkRequest request(QUrl("http://127.0.0.1:8000/students"));
-    //QNetworkReply *allStudentsReply = networkManager->get(request);
-
-    //connect(allStudentsReply, &QNetworkReply::finished, this, &MainWidget::slotFetchAllStudents);
 }
 
 void MainWidget::slotAddButtonClicked() {
@@ -227,6 +223,7 @@ void MainWidget::initConnections() {
     connect(deleteAllButton, &QPushButton::clicked,this, [this]() {
         model->clear();
     });
+    connect(backendManager, &BackendManager::authSuccessful, this, &MainWidget::slotAuthSuccessful);
 }
 
 MainWidget::~MainWidget() {

@@ -4,7 +4,8 @@
 #include <glog/logging.h>
 
 
-ConnectWidget::ConnectWidget(QWidget *parent) {
+ConnectWidget::ConnectWidget(BackendManager *backendManager, QWidget *parent) :
+                                                                    QWidget(parent), backendManager(backendManager) {
     initConnectLayout();
     initConnectStatusLayout();
     initwidgetVLaoyut();
@@ -38,7 +39,15 @@ void ConnectWidget::initwidgetVLaoyut() {
 }
 
 void ConnectWidget::initConnections() {
-    connect(connectButton, &QPushButton::clicked, this, &ConnectWidget::connectButtonClicked);
+    connect(connectButton, &QPushButton::clicked, this, [this](){
+                    connectStatus->setText("");
+                    connectButton->show();
+                    emit connectButtonClicked();
+    });
+    connect(backendManager, &BackendManager::authSuccessful, this, [this] (){
+        connectButton->hide();
+        connectStatus->setText("Connected!");
+    });
 }
 
 
@@ -50,27 +59,27 @@ ConnectWidget::~ConnectWidget() {
     delete widgetVLayout;
 }
 
-void ConnectWidget::slotOkButtonDone() {
-    LOG(INFO) << "Qt: ConnectWidget slot ok button clicked (connection success)";
-    connectButton->hide();
-    try {
-        connectStatus->setText("Connected!");
-        LOG(INFO) << "Qt: connection with db established";
-        emit connectionSuccessful();
-    }
-    catch(...) { /*TODO: Fix this, connection establishes
-                         in a different way, so catch(...) is no more required*/
-        LOG(ERROR) << "Qt: connection to broker failed";
-        connectStatus->setText("Connection Failed!");
-        QTimer *timer = new QTimer();
-        connect(timer, &QTimer::timeout, this, [this, timer]() {
-            connectStatus->setText("");
-            connectButton->show();
-            timer->deleteLater();
-        });
-        timer->start(500);
-    }
-}
+//void ConnectWidget::slotOkButtonDone() {
+//    LOG(INFO) << "Qt: ConnectWidget slot ok button clicked (connection success)";
+//    connectButton->hide();
+//    try {
+//        connectStatus->setText("Connected!");
+//        //LOG(INFO) << "Qt: connection with db established";
+//        emit connectionSuccessful();
+//    }
+//    catch(...) { /*TODO: Fix this, connection establishes
+//                         in a different way, so catch(...) is no more required*/
+//        LOG(ERROR) << "Qt: connection to broker failed";
+//        connectStatus->setText("Connection Failed!");
+//        QTimer *timer = new QTimer();
+//        connect(timer, &QTimer::timeout, this, [this, timer]() {
+//            connectStatus->setText("");
+//            connectButton->show();
+//            timer->deleteLater();
+//        });
+//        timer->start(500);
+//    }
+//}
 
 void ConnectWidget::slotDisconnectButtonClicked() {
     LOG(INFO) << "Qt: ConnectWidget slot disconnect button clicked";

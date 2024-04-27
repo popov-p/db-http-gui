@@ -11,7 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     setGeometry(100, 100, 800, 600);
     backendManager = new BackendManager();
-    connectWidget = new ConnectWidget();
+    connectWidget = new ConnectWidget(backendManager);
     mainWidget = new MainWidget(backendManager);
     settingsDialog = new SettingsDialog(backendManager);
 
@@ -54,12 +54,10 @@ void MainWindow::initCentralStackedWidget() {
 void MainWindow::initConnections() {
     connect(connectWidget, &ConnectWidget::connectButtonClicked,
             this, &MainWindow::slotConnectButtonClicked);
-    connect(connectWidget, &ConnectWidget::connectionSuccessful,
+    connect(backendManager, &BackendManager::authSuccessful,
             this, &MainWindow::slotConnectionSuccessful);
     connect(settingsDialog, &SettingsDialog::okButtonDone,
-            mainWidget, &MainWidget::handleSettingsDialogOkButtonDone);
-    connect(settingsDialog, &SettingsDialog::okButtonDone,
-            connectWidget, &ConnectWidget::slotOkButtonDone);
+            mainWidget, &MainWidget::slotAuthSuccessful);
     connect(mainWidget, &MainWidget::disconnectButtonClicked,
             this, &MainWindow::slotDisconnectButtonClicked);
     connect (mainWidget, &MainWidget::disconnectButtonClicked,

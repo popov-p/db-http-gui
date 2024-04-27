@@ -26,10 +26,8 @@ class MainWidget : public QWidget {
 public:
     MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
     ~MainWidget();
-
 public slots:
-    void handleSettingsDialogOkButtonDone();
-
+    void slotAuthSuccessful();
 private:
     AddElementDialog *addElementDialog;
     QVBoxLayout *widgetVLayout;
@@ -66,9 +64,9 @@ private:
     void initConnections();
 
 private slots:
-    void slotDisconnectButtonClicked();
     void slotAddButtonClicked();
     void slotDeleteSelecterRows();
+    void slotDisconnectButtonClicked();
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

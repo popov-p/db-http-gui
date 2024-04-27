@@ -14,64 +14,6 @@ SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) 
     initButtonLayout();
     initSettingsStatusLayout();
     initVerticalDialogLayout();
-    // okDialogButton = new QPushButton("Ok");
-    // cancelDialogButton = new QPushButton("Cancel");
-
-    //usernameLabel = new QLabel("username: ");
-    //passwordLabel = new QLabel("password: ");
-    //logdirLabel = new QLabel("logdir: ");
-    //logLabel = new QLabel("log severity: ");
-    // settingsStatus = new QLabel();
-    // settingsStatus->setAlignment(Qt::AlignCenter);
-
-    //usernameLineEdit = new QLineEdit();
-    //passwordLineEdit = new QLineEdit();
-    //passwordLineEdit->setEchoMode(QLineEdit::Password);
-
-    // logdirLineEdit = new QLineEdit();
-    // logdirLineEdit->setText("../log");
-
-    // usernameLineEdit->setValidator(credentialsValidator);
-    //passwordLineEdit->setValidator(credentialsValidator);
-
-    // logComboBox = new QComboBox();
-    // logComboBox->addItem("INFO");
-    // logComboBox->addItem("ERROR");
-
-    // hUsernameLayout = new QHBoxLayout();
-    // hUsernameLayout->addWidget(usernameLabel);
-    // hUsernameLayout->addWidget(usernameLineEdit);
-
-    // hPasswordLayout = new QHBoxLayout();
-    // hPasswordLayout->addWidget(passwordLabel);
-    // hPasswordLayout->addWidget(passwordLineEdit);
-
-    // hLogDirLayout = new QHBoxLayout();
-    // hLogDirLayout->addWidget(logdirLabel);
-    // hLogDirLayout->addWidget(logdirLineEdit);
-
-    // hLogLayout = new QHBoxLayout();
-    // hLogLayout->addWidget(logLabel);
-    // hLogLayout->addWidget(logComboBox);
-
-    // hButtonLayout = new QHBoxLayout();
-    // hButtonLayout->addWidget(okDialogButton);
-    // hButtonLayout->addWidget(cancelDialogButton);
-
-
-    // hSettingsStatusLayout = new QHBoxLayout();
-    // hSettingsStatusLayout->addWidget(settingsStatus);
-
-    // verticalDialogLayout = new QVBoxLayout();
-    // verticalDialogLayout->addLayout(hUsernameLayout);
-    // verticalDialogLayout->addLayout(hPasswordLayout);
-    // verticalDialogLayout->addLayout(hLogDirLayout);
-    // verticalDialogLayout->addLayout(hLogLayout);
-    // verticalDialogLayout->addLayout(hSettingsStatusLayout);
-    // verticalDialogLayout->addLayout(hButtonLayout);
-
-    // setLayout(verticalDialogLayout);
-
     initConnections();
 }
 
@@ -147,13 +89,19 @@ void SettingsDialog::initConnections() {
             this, &SettingsDialog::slotOkButtonDone);
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotCancelButtonClicked);
-    // connect(networkManager, &QNetworkAccessManager::authenticationRequired, this,
-    //         [& ,this](QNetworkReply *reply, QAuthenticator *authenticator) {
-    //             LOG(INFO) << "Authentication required! "
-    //                       << reply->url().toString().toStdString();
-    //             authenticator->setUser(usernameLineEdit->text());
-    //             authenticator->setPassword(passwordLineEdit->text());
-    //         });
+    connect(backendManager, &BackendManager::authSuccessful, this, [this] () {
+                 usernameLineEdit->clear();
+                 passwordLineEdit->clear();
+                 logdirLineEdit->setText("../log");
+                 logComboBox->setCurrentIndex(0);
+                 settingsStatus->clear();
+                 hide();
+                 qDebug() << "Qt UI: SettingsDialog ok button done";
+                 LOG(INFO) << "Qt UI: SettingsDialog ok button done";
+    });
+    connect(backendManager, &BackendManager::authFailed, this, [this] (int errcode) {
+        settingsStatus->setText("Auth failed! Errcode: " + QString::number(errcode));
+    });
 }
 
 
@@ -182,21 +130,12 @@ SettingsDialog::~SettingsDialog() {
 void SettingsDialog::slotOkButtonDone() {
     if(!usernameLineEdit->text().isEmpty() &&
        !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
-        /*fix another one timeout trouble*/
-        //QNetworkRequest request(QUrl("http://127.0.0.1:8000/auth"));
-        //QNetworkReply *reply = networkManager->post(request, QByteArray());
+        backendManager->login(usernameLineEdit->text(),
+                              passwordLineEdit->text());
 
         // QObject::connect(reply, &QNetworkReply::finished, this, [&, reply](){
         //     if(reply->error() == QNetworkReply::NoError) {
         //         LOG(INFO) << reply->readAll().toStdString();
-        //         usernameLineEdit->clear();
-        //         passwordLineEdit->clear();
-        //         logdirLineEdit->setText("../log");
-        //         logComboBox->setCurrentIndex(0);
-        //         settingsStatus->clear();
-        //         hide();
-        //         qDebug() << "Qt UI: SettingsDialog ok button done";
-        //         LOG(INFO) << "Qt UI: SettingsDialog ok button done";
         //         emit okButtonDone();
         //     } else if (reply->error() == QNetworkReply::ContentAccessDenied) {
         //         LOG(ERROR) << reply->errorString().toStdString();
@@ -225,7 +164,6 @@ void SettingsDialog::slotCancelButtonClicked() {
     usernameLineEdit->clear();
     passwordLineEdit->clear();
     settingsStatus->clear();
-    emit cancelButtonClicked();
     hide();
 }
 

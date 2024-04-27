@@ -13,18 +13,20 @@ public:
     explicit BackendManager(QObject *parent = nullptr);
     ~BackendManager();
 
-    void login(QString username, QString password);
-    void retrieveDbFields();
+    void /*bool*/login(QString username, QString password);
+    void /*QList*/retrieveDbFields();
     /*methods to access database fields here*/
-    QNetworkReply::NetworkError	logout();
+    void logout();
 private:
     QNetworkAccessManager *networkManager;
-    QAuthenticator *authenticator;
-    /*db fields*/;
-    QString activeUser;
+    QMap<QString, std::function<void(QNetworkReply*)>> replyHandlers;
+
     void initConnections();
 private slots:
-    void slotLoginFinished();
+    void slotRequestFinished(QNetworkReply *reply);
+signals:
+    void authSuccessful();
+    void authFailed(QNetworkReply::NetworkError errcode);
 };
 
-#endif // BackendEMANAGER_H
+#endif // BACKENDMANAGER_H
