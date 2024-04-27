@@ -64,8 +64,7 @@ void MainWindow::initConnections() {
             connectWidget, &ConnectWidget::slotDisconnectButtonClicked);
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete backendManager;
     delete connectWidget;
     delete mainWidget;

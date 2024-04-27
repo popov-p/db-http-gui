@@ -36,6 +36,9 @@ void BackendManager::initConnections() {
             }
             reply->deleteLater();
     };
+    replyHandlers["http://127.0.0.1:8000/fields"] = [this] (QNetworkReply *reply) {
+
+    };
 
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }

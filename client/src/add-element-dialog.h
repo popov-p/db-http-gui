@@ -12,7 +12,7 @@
 #include <QLabel>
 #include <QLineEdit>
 #include <QSettings>
-#include <backend-manager.h>
+#include "backend-manager.h"
 
 class AddElementDialog : public QDialog {
     Q_OBJECT

@@ -56,6 +56,7 @@ private:
     QCheckBox *leqCheckBox;
 
     BackendManager *backendManager = nullptr;
+
     void initHeaderLayout();
     void initResponseLabelLayout();
     void initTableViewLayout();

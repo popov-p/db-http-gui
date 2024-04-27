@@ -179,9 +179,9 @@ void MainWidget::initFilterOptionsLayout() {
     geqCheckBox = new QCheckBox("And greater");
     hFilterOptionsLayout = new QHBoxLayout();
 
-    startsWithLetterComboBox->addItem("Last name"); /*TODO: Fix this with a get*/
-    startsWithLetterComboBox->addItem("First name");
-    startsWithLetterComboBox->addItem("Patronymic");
+    //startsWithLetterComboBox->addItem("Last name"); /*TODO: Fix this with a get*/
+    //startsWithLetterComboBox->addItem("First name");
+    //startsWithLetterComboBox->addItem("Patronymic");
 
     QStringList alphabet;
     alphabet.append("-");
@@ -191,8 +191,8 @@ void MainWidget::initFilterOptionsLayout() {
     alphabetComboBox->addItems(alphabet);
 
 
-    compareComboBox->addItem("Course"); /*TODO: Fix this !!*/
-    compareComboBox->addItem("Group");
+    //compareComboBox->addItem("Course"); /*TODO: Fix this !!*/
+    //compareComboBox->addItem("Group");
 
     hFilterOptionsLayout->addWidget(startsWithLetterComboBox);
     hFilterOptionsLayout->addWidget(startsWithLetterLabel);
