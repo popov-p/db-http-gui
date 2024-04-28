@@ -33,7 +33,6 @@ void MainWidget::slotDisconnectButtonClicked() {
     compareElementsComboBox->hide();
     geqCheckBox->hide();
     leqCheckBox->hide();
-    //networkManager->clearAccessCache();
 
     emit disconnectButtonClicked();
 }
@@ -62,6 +61,8 @@ void MainWidget::slotAuthSuccessful() {
     geqCheckBox->show();
     leqCheckBox->show();
     responseLabel->clear();
+    model->clear();
+    backendManager->retrieveDbFields();
 }
 
 void MainWidget::slotAddButtonClicked() {

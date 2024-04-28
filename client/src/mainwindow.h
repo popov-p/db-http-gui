@@ -38,7 +38,7 @@ private:
     void initConnections();
     void initCentralStackedWidget();
 
-    BackendManager * backendManager;
+    BackendManager *backendManager;
 private slots:
     void slotDisconnectButtonClicked();
     void slotConnectionSuccessful();
