@@ -54,8 +54,8 @@ private:
     QComboBox *compareElementsComboBox;
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
-
-    QMap<QString, QStringList> fieldsMap;
+    QStringList totalFields;
+    QMap<QString, QStringList> addCompMap;
     BackendManager *backendManager = nullptr;
 
     void initHeaderLayout();
@@ -70,6 +70,7 @@ private slots:
     void slotDeleteSelecterRows();
     void slotDisconnectButtonClicked();
     void slotGetFieldsSuccessful(QMap<QString, QStringList> fieldsMap);
+    void slotGetAllDbRecordingsSuccessful(QList<QList<QStandardItem*>> rows);
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

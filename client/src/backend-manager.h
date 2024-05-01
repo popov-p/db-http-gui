@@ -3,6 +3,7 @@
 
 #include <QObject>
 #include <QNetworkAccessManager>
+#include <QStandardItem>
 #include <QNetworkReply>
 #include <QAuthenticator>
 #include <glog/logging.h>
@@ -12,17 +13,19 @@ class BackendManager : public QObject {
 public:
     explicit BackendManager(QObject *parent = nullptr);
     ~BackendManager();
-
+    void setBaseURL(QString url);
     void login(QString username, QString password);
     void getDbFields();
+    void getAllDbRecordings();
     /*methods to access database fields here*/
     void logout();
 private:
+    QString baseUrl;
     QNetworkAccessManager *networkManager;
     QMap<QString, std::function<void(QNetworkReply*)>> replyHandlers;
     void handleLogin(QNetworkReply *reply);
     void handleDBFields(QNetworkReply *reply);
-
+    void handleAllDbRecordings(QNetworkReply *reply);
     void initConnections();
 private slots:
     void slotRequestFinished(QNetworkReply *reply);
@@ -31,8 +34,9 @@ signals:
     void loginFailed(QNetworkReply::NetworkError errcode);
     void getFieldsSuccessful(QMap<QString, QStringList> fields);
     void getFieldsFailed(QNetworkReply::NetworkError errcode);
-    //void retrieveDBFieldsSuccessful();
-    //void
+    void getAllDbRecordingsSuccessful(QList<QList<QStandardItem*>> rows);
+    void getAllDbRecordingsFailed(QNetworkReply::NetworkError errcode);
+
 };
 
 void multiarg(QByteArray& ba);

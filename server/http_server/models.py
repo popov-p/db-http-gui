@@ -12,10 +12,10 @@ class Student(Base):
     last_name = Column(String)
     first_name = Column(String)
     patronymic = Column(String)
-    year = Column(Integer)
-    photo = Column(String)
-    course = Column(Integer)
     group = Column(String)
+    year = Column(Integer)
+    course = Column(Integer)
+    photo = Column(String)
     
     def __repr__(self):
         return f"<Student(id={self.id}, full_name='{self.full_name}', year={self.year}, " \

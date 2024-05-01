@@ -3,13 +3,24 @@ from typing import Optional, List, Union
 
 
 class Student(BaseModel):
+    id: int
     last_name: str
     first_name: str
     patronymic: str
-    year: int
-    photo: str
-    course: int
     group: str
+    year: int
+    course: int
+    photo: str
+
+class StudentCreate(BaseModel):
+    last_name: str
+    first_name: str
+    patronymic: str
+    group: str
+    year: int
+    course: int
+    photo: str
+
 
 class StudentUpdate(BaseModel):
     last_name: Optional[str] = None

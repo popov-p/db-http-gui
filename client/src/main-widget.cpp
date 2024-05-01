@@ -35,9 +35,10 @@ void MainWidget::slotDisconnectButtonClicked() {
     geqCheckBox->hide();
     leqCheckBox->hide();
 
-    fieldsMap.clear();
+    addCompMap.clear();
     compareComboBox->clear();
     startsWithLetterComboBox->clear();
+    model->clear();
 
     emit disconnectButtonClicked();
 }
@@ -66,21 +67,43 @@ void MainWidget::slotLoginSuccessful() {
     geqCheckBox->show();
     leqCheckBox->show();
     responseLabel->clear();
+    totalFields.clear();
     model->clear();
 
     backendManager->getDbFields();
+    backendManager->getAllDbRecordings();
 }
 
 void MainWidget::slotGetFieldsSuccessful(QMap<QString, QStringList> fieldsMapResponse) {
     qDebug() << "slotGetFieldsSuccessful";
-    fieldsMap = fieldsMapResponse;
-    compareComboBox->addItems(fieldsMap["comparable"]);
-    startsWithLetterComboBox->addItems(fieldsMap["alphabetic"]);
+    totalFields = fieldsMapResponse["total"];
+    addCompMap.insert("comparable", fieldsMapResponse["comparable"]);
+    addCompMap.insert("alphabetic", fieldsMapResponse["alphabetic"]);
+
+    compareComboBox->addItems(addCompMap["comparable"]);
+    startsWithLetterComboBox->addItems(addCompMap["alphabetic"]);
+    model->setHorizontalHeaderLabels(totalFields);
+    qDebug() << "total fields ON DOWNLOAD are: ---" << totalFields.size();
+}
+
+void MainWidget::slotGetAllDbRecordingsSuccessful(QList<QList<QStandardItem*>> rows) {
+    qDebug() << "slotGetAllDbRecordingsSuccessful ---- ";
+    for (const QList<QStandardItem*> &rowData : rows) {
+       model->appendRow(rowData);
+    }
+    //tableView->setColumnHidden(0, true);
 
 }
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot add button clicked";
+    auto it = addCompMap.constBegin();
+    while (it != addCompMap.constEnd()) {
+        const auto& key = it.key();
+        const auto& value = it.value();
+        addElementDialog->setInputFields(key, value);
+        ++it;
+    }
     addElementDialog->exec();
 }
 
@@ -177,6 +200,7 @@ void MainWidget::initConnections() {
     });
     connect(backendManager, &BackendManager::loginSuccessful, this, &MainWidget::slotLoginSuccessful);
     connect(backendManager, &BackendManager::getFieldsSuccessful, this, &MainWidget::slotGetFieldsSuccessful);
+    connect(backendManager, &BackendManager::getAllDbRecordingsSuccessful, this, &MainWidget::slotGetAllDbRecordingsSuccessful);
 }
 
 MainWidget::~MainWidget() {

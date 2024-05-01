@@ -8,7 +8,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import StudentUpdate, FieldsRequest
+from server.http_server.schemas import StudentUpdate, FieldsRequest, StudentCreate
 from server.http_server import crud
 import os
 from configparser import ConfigParser
@@ -54,18 +54,6 @@ def get_db():
 def root():
     return {"message": "Hello World"}
 
-@app.get("/fields", response_model=FieldsRequest)
-def get_fields(db: Session = Depends(get_db)):
-    print(db.query(Student).first().__dict__.keys())
-    total = Student.__table__.columns.keys()
-    alphabetic = ["last_name", "first_name", "patronymic", "group"]
-    comparable = ["year","course"]
-    
-    years = [year[0] for year in db.query(Student.year).distinct().all()]
-    courses = [course[0] for course in db.query(Student.course).distinct().all()]
-
-    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable, years=years, courses=courses)
-
 @app.post("/auth")
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = username
@@ -74,11 +62,23 @@ def auth(credentials: HTTPBasicCredentials = Depends(security)):
         raise HTTPException(status_code=403 , detail="Incorrect username or password")
     return {"message": "Welcome, authorized user!"}
 
+@app.get("/fields", response_model=FieldsRequest, dependencies=[Depends(auth)])
+def get_fields(db: Session = Depends(get_db)):
+    total = [key for key in Student.__table__.columns.keys()]
+    #total = Student.__table__.columns.keys()
+    alphabetic = ["last_name", "first_name", "patronymic", "group"]
+    comparable = ["year","course"]
+    
+    years = [year[0] for year in db.query(Student.year).distinct().all()]
+    courses = [course[0] for course in db.query(Student.course).distinct().all()]
+
+    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable, years=years, courses=courses)
+
+
 # Create student
-@app.post("/create-student/", response_model=schemas.Student)
-def create_student(student: schemas.Student, db: Session = Depends(get_db)):
+@app.post("/create-student/", response_model=schemas.StudentCreate)
+def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
-@app.get("/students/")
 
 
 # Read student by ID
@@ -113,5 +113,4 @@ def delete_student(student_id: int, db: Session = Depends(get_db)):
 # Delete all students 
 @app.delete("/students/", response_model=int)
 def delete_all_students(db: Session = Depends(get_db)):
-    num_deleted = crud.delete_all_students(db=db)
-    return {"message": f"{num_deleted} students deleted successfully"}
+    return crud.delete_all_students(db=db)

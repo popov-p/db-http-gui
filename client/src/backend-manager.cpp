@@ -2,6 +2,7 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
+#include <QStandardItemModel>
 
 void multiarg(QByteArray& ba) {};
 
@@ -27,7 +28,17 @@ void BackendManager::getDbFields() {
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
     qDebug() << "login";
-    networkManager->get(request, QByteArray());;
+    networkManager->get(request);
+}
+
+void BackendManager::getAllDbRecordings() {
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students"));
+    QByteArray credentials;
+    multiarg(credentials, "pavel", ":", "popov");
+    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    request.setTransferTimeout(500);
+    qDebug() << "get All Db recordings";
+    networkManager->get(request);
 }
 
 void BackendManager::slotRequestFinished(QNetworkReply *reply) {
@@ -36,7 +47,7 @@ void BackendManager::slotRequestFinished(QNetworkReply *reply) {
         if (replyHandlers.contains(url)) {
             replyHandlers[url](reply);
         } else {
-            //emit unknownUrl;
+            LOG(ERROR) << "BM unknown URL";
         }
 
         reply->deleteLater();
@@ -87,11 +98,48 @@ void BackendManager::handleDBFields(QNetworkReply *reply) {
     }
 }
 
+void BackendManager::handleAllDbRecordings(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        QByteArray data = reply->readAll();
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(data);
+        if (jsonDocument.isArray()) {
+            QList<QList<QStandardItem*>> rows;
+            QJsonArray jsonArray = jsonDocument.array();
+            for (const QJsonValue &value : jsonArray) {
+                if (value.isObject()) {
+                    QJsonObject jsonObject = value.toObject();
+                    QList<QStandardItem*> row;
+                    for (const QString &key : jsonObject.keys()) {
+                        QJsonValue jsonValue = jsonObject.value(key);
+                        QStandardItem *item = nullptr;
+                        if (jsonValue.isString()) {
+                            item = new QStandardItem(jsonObject.value(key).toString());
+                        }
+                        else if (jsonValue.isDouble()) {
+                            item = new QStandardItem(QString::number(jsonValue.toInt()));
+                        }
+                        if (item != nullptr) {
+                            row << item;
+                        }
+                    }
+                    rows.append(row);
+                }
+            }
+
+        //qDebug() << "Received data:" << data;
+        emit getAllDbRecordingsSuccessful(rows);
+        }
+        else {
+            qDebug() << reply->errorString();
+            emit getAllDbRecordingsFailed(reply->error());
+        }
+    }
+}
 
 void BackendManager::initConnections() {
     replyHandlers["http://127.0.0.1:8000/auth"] = std::bind(&BackendManager::handleLogin, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleDBFields, this, std::placeholders::_1);
-
+    replyHandlers["http://127.0.0.1:8000/students"] = std::bind(&BackendManager::handleAllDbRecordings, this, std::placeholders::_1);
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }
 
