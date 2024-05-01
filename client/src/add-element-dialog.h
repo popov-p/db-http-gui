@@ -18,7 +18,8 @@ class AddElementDialog : public QDialog {
     Q_OBJECT
 public:
     AddElementDialog(BackendManager *backendManager, QWidget *parent = nullptr);
-    void dumpCfgIni(std::string cfg_path);
+    void setAlphabeticFields(QStringList alphabeticFields);
+    void setComparableFields(QStringList comparableFields);
     ~AddElementDialog();
 public slots:
     void slotOkButtonDone();
@@ -38,7 +39,6 @@ private:
     void initConnections();
 signals:
     void okButtonDone();
-    void cancelButtonClicked();
 };
 
 #endif

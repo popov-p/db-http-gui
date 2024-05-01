@@ -20,7 +20,7 @@ void BackendManager::login(QString username, QString password) {
     networkManager->post(request, QByteArray());;
 }
 
-void BackendManager::retrieveDbFields() {
+void BackendManager::getDbFields() {
     QNetworkRequest request(QUrl("http://127.0.0.1:8000/fields"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
@@ -46,57 +46,51 @@ void BackendManager::handleLogin(QNetworkReply *reply) {
     qDebug() << "This output is from auth lambda inside";
     if (reply->error() == QNetworkReply::NoError) {
         qDebug() << "Authentication successful";
-        emit authSuccessful();
+        emit loginSuccessful();
     } else {
         qDebug() << "Authentication failed";
-        emit authFailed(reply->error());
+        emit loginFailed(reply->error());
     }
     reply->deleteLater();
 }
 
-void BackendManager::initConnections() {
-    replyHandlers["http://127.0.0.1:8000/auth"] = std::bind(&BackendManager::handleLogin, this, std::placeholders::_1);
-
-
-    replyHandlers["http://127.0.0.1:8000/fields"] = [this] (QNetworkReply *reply) {
-        qDebug() << "This output is from Fields Lambda inside";
-        if (reply->error() == QNetworkReply::NoError) {
-            QByteArray responseData = reply->readAll();
-            QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
-            if (!jsonResponse.isNull()) {
-                QJsonObject jsonObject = jsonResponse.object();
-                if (jsonObject.contains("total") && jsonObject.contains("alphabetic") && jsonObject.contains("comparable")) {
-                    QJsonArray totalArray = jsonObject["total"].toArray();
-                    QStringList totalList;
-                    for (const QJsonValue &value : totalArray) {
-                        totalList.append(value.toString());
+void BackendManager::handleDBFields(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        QStringList keys = {"total", "alphabetic", "comparable"};
+        QByteArray responseData = reply->readAll();
+        QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
+        if (!jsonResponse.isNull()) {
+            QJsonObject jsonObject = jsonResponse.object();
+            if (jsonObject.contains(keys[0]) && jsonObject.contains(keys[1]) && jsonObject.contains(keys[2])) {
+                QMap<QString, QStringList> fieldsMapResponse;
+                for (const auto & key : keys) {
+                    QJsonArray jsonArray = jsonObject[key].toArray();
+                    QStringList list;
+                    for (const QJsonValue& value : jsonArray) {
+                        list.append(value.toString());
                     }
-                    qDebug() << "TotalList: " << totalList;
-
-                    QJsonArray alphabeticArray = jsonObject["alphabetic"].toArray();
-                    QStringList alphabeticList;
-                    for (const QJsonValue &value : alphabeticArray) {
-                        alphabeticList.append(value.toString());
-                    }
-                    qDebug() << "AlphabeticList: " << alphabeticList;
-                    QJsonArray comparableArray = jsonObject["comparable"].toArray();
-                    QStringList comparableList;
-                    for (const QJsonValue &value : comparableArray) {
-                        comparableList.append(value.toString());
-                    }
-                    qDebug() << "ComparableList: " << comparableList;
-                    //emit wtf(/**/);
-
-                } else {
-                    qDebug() << "Invalid JSON format";
+                    qDebug() << "Fields List: " << list;
+                    fieldsMapResponse[key] = list;
                 }
+                emit getFieldsSuccessful(fieldsMapResponse);
             } else {
-                qDebug() << "Failed to parse JSON response";
+                qDebug() << "Invalid JSON format";
+                emit getFieldsFailed(QNetworkReply::ContentConflictError);
             }
         } else {
-            qDebug() << "Network error:" << reply->errorString();
+            qDebug() << "Failed to parse JSON response";
+            emit getFieldsFailed(QNetworkReply::UnknownContentError);
         }
-    };
+    } else {
+        qDebug() << reply->errorString();
+        emit getFieldsFailed(reply->error());
+    }
+}
+
+
+void BackendManager::initConnections() {
+    replyHandlers["http://127.0.0.1:8000/auth"] = std::bind(&BackendManager::handleLogin, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleDBFields, this, std::placeholders::_1);
 
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }

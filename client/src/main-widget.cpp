@@ -15,6 +15,7 @@ MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : backen
     initWidgetVLayout();
     initConnections();
 }
+
 void MainWidget::slotDisconnectButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot disconnect button clicked";
     addButton->hide();
@@ -34,6 +35,10 @@ void MainWidget::slotDisconnectButtonClicked() {
     geqCheckBox->hide();
     leqCheckBox->hide();
 
+    fieldsMap.clear();
+    compareComboBox->clear();
+    startsWithLetterComboBox->clear();
+
     emit disconnectButtonClicked();
 }
 
@@ -44,7 +49,7 @@ void MainWidget::slotDeleteSelecterRows() {
     }
 }
 
-void MainWidget::slotAuthSuccessful() {
+void MainWidget::slotLoginSuccessful() {
     LOG(INFO) << "Qt: MainWidget handled slot connect button clicked";
     disconnectButton->show();
     addButton->show();
@@ -62,69 +67,22 @@ void MainWidget::slotAuthSuccessful() {
     leqCheckBox->show();
     responseLabel->clear();
     model->clear();
-    backendManager->retrieveDbFields();
+
+    backendManager->getDbFields();
+}
+
+void MainWidget::slotGetFieldsSuccessful(QMap<QString, QStringList> fieldsMapResponse) {
+    qDebug() << "slotGetFieldsSuccessful";
+    fieldsMap = fieldsMapResponse;
+    compareComboBox->addItems(fieldsMap["comparable"]);
+    startsWithLetterComboBox->addItems(fieldsMap["alphabetic"]);
+
 }
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot add button clicked";
     addElementDialog->exec();
 }
-
-// void MainWidget::slotFetchAllStudents() {
-//     if (allStudentsReply->error() == QNetworkReply::NoError) {
-//         QByteArray responseData = allStudentsReply->readAll();
-//         QJsonDocument jsonDocument = QJsonDocument::fromJson(responseData);
-//         if (!jsonDocument.isNull() && jsonDocument.isArray()) {
-//             QList <QString> headers;
-//             QJsonArray jsonArray = jsonDocument.array();
-//             QJsonObject jsonObject = jsonArray.first().toObject();
-//             for (auto it = jsonObject.constBegin(); it != jsonObject.constEnd(); ++it) {
-//                 headers.append(it.key());
-//             }
-//             QJsonObject sortedJsonObject;
-//             for (const QString& header : headers) {
-//                 sortedJsonObject[header] = jsonObject.value(header);
-//             }
-//             model->setHorizontalHeaderLabels(headers);
-//             //jsonDocument = QJsonDocument(sortedJsonObject);
-//             foreach (const QJsonValue &value, jsonArray) {
-//                 if (value.isObject()) {
-//                     QJsonObject jsonObject = value.toObject();
-//                     int id = jsonObject["id"].toInt();
-//                     QString last_name = jsonObject["last_name"].toString();
-//                     QString first_name = jsonObject["first_name"].toString();
-//                     QString patronymic = jsonObject["patronymic"].toString();
-//                     int year = jsonObject["year"].toInt();
-//                     QString photo = jsonObject["photo"].toString();
-//                     int course = jsonObject["course"].toInt();
-//                     QString group = jsonObject["group"].toString();
-//                     /*!!! REWRITE THIS !!!*/
-//                     QList<QStandardItem*> rowItems;
-//                     rowItems << new QStandardItem(QString::number(id));
-//                     rowItems << new QStandardItem(last_name);
-//                     rowItems << new QStandardItem(first_name);
-//                     rowItems << new QStandardItem(patronymic);
-//                     rowItems << new QStandardItem(QString::number(year));
-//                     rowItems << new QStandardItem(photo);
-//                     rowItems << new QStandardItem(QString::number(course));
-//                     rowItems << new QStandardItem(group);
-
-//                     model->appendRow(rowItems);
-//                 }
-//             }
-//         } else {
-//             responseLabel->setText("DB is empty");
-//         }
-//     }
-//     else {
-//         qDebug() << "Error:" << allStudentsReply->errorString();
-//     }
-
-//     allStudentsReply->deleteLater();
-// }
-//void MainWidget::handleAllHeaderOrder() {
-
-//}
 
 void MainWidget::initHeaderLayout() {
     addButton = new QPushButton("Add");
@@ -134,7 +92,8 @@ void MainWidget::initHeaderLayout() {
     usernameLabel = new QLabel("upd later");
     hHeaderLayout = new QHBoxLayout();
 
-    QList<QPushButton*> buttons = {addButton, deleteSelectedButton, deleteAllButton, disconnectButton};
+    QList<QPushButton*> buttons = {addButton, deleteSelectedButton,
+                                   deleteAllButton, disconnectButton};
     for (QPushButton *button : buttons) {
         button->setFixedSize(100, 50);
     }
@@ -180,20 +139,12 @@ void MainWidget::initFilterOptionsLayout() {
     geqCheckBox = new QCheckBox("And greater");
     hFilterOptionsLayout = new QHBoxLayout();
 
-    //startsWithLetterComboBox->addItem("Last name"); /*TODO: Fix this with a get*/
-    //startsWithLetterComboBox->addItem("First name");
-    //startsWithLetterComboBox->addItem("Patronymic");
-
     QStringList alphabet;
     alphabet.append("-");
     for (char letter = 'A'; letter <= 'Z'; ++letter) {
         alphabet.append(QString(letter));
     }
     alphabetComboBox->addItems(alphabet);
-
-
-    //compareComboBox->addItem("Course"); /*TODO: Fix this !!*/
-    //compareComboBox->addItem("Group");
 
     hFilterOptionsLayout->addWidget(startsWithLetterComboBox);
     hFilterOptionsLayout->addWidget(startsWithLetterLabel);
@@ -221,10 +172,11 @@ void MainWidget::initConnections() {
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
     connect(deleteSelectedButton, &QPushButton::clicked, this, &MainWidget::slotDeleteSelecterRows);
-    connect(deleteAllButton, &QPushButton::clicked,this, [this]() {
+    connect(deleteAllButton, &QPushButton::clicked,this, [this] () {
         model->clear();
     });
-    connect(backendManager, &BackendManager::authSuccessful, this, &MainWidget::slotAuthSuccessful);
+    connect(backendManager, &BackendManager::loginSuccessful, this, &MainWidget::slotLoginSuccessful);
+    connect(backendManager, &BackendManager::getFieldsSuccessful, this, &MainWidget::slotGetFieldsSuccessful);
 }
 
 MainWidget::~MainWidget() {

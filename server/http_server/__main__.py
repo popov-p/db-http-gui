@@ -58,9 +58,13 @@ def root():
 def get_fields(db: Session = Depends(get_db)):
     print(db.query(Student).first().__dict__.keys())
     total = Student.__table__.columns.keys()
-    alphabetic = ["last_name, first_name", "patronymic"]
-    comparable = ["year","course", "group"]
-    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable)
+    alphabetic = ["last_name", "first_name", "patronymic", "group"]
+    comparable = ["year","course"]
+    
+    years = [year[0] for year in db.query(Student.year).distinct().all()]
+    courses = [course[0] for course in db.query(Student.course).distinct().all()]
+
+    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable, years=years, courses=courses)
 
 @app.post("/auth")
 def auth(credentials: HTTPBasicCredentials = Depends(security)):

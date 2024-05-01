@@ -74,22 +74,6 @@ void AddElementDialog::slotOkButtonDone() {
 
 void AddElementDialog::slotCancelButtonClicked() {
     LOG(INFO) << "Qt: AddElementDialog slotCancelButtonClicked";
-//    usernameLineEdit->clear();
-//    passwordLineEdit->clear();
-//    settingsStatus->clear();
-    emit cancelButtonClicked();
     hide();
 }
 
-void AddElementDialog::dumpCfgIni(std::string cfg_path) {
-//    QSettings *settingsIni = new QSettings(QString::fromStdString(cfg_path), QSettings::IniFormat);
-//    settingsIni->beginGroup("auth");
-//    settingsIni->setValue("username", usernameLineEdit->text());
-//    settingsIni->setValue("password", passwordLineEdit->text());
-//    settingsIni->beginGroup("logging");
-//    settingsIni->setValue("dir", logdirLineEdit->text());
-//    settingsIni->setValue("severity", logComboBox->currentText());
-//    settingsIni->endGroup();
-//    delete settingsIni;
-//    LOG(INFO) << "Qt: SettingsDialog dumping cfg";
-}

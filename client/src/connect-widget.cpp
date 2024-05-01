@@ -44,7 +44,7 @@ void ConnectWidget::initConnections() {
                     connectButton->show();
                     emit connectButtonClicked();
     });
-    connect(backendManager, &BackendManager::authSuccessful, this, [this] (){
+    connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
         connectButton->hide();
         connectStatus->setText("Connected!");
     });

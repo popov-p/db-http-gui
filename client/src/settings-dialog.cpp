@@ -89,7 +89,7 @@ void SettingsDialog::initConnections() {
             this, &SettingsDialog::slotOkButtonDone);
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotCancelButtonClicked);
-    connect(backendManager, &BackendManager::authSuccessful, this, [this] () {
+    connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
                  usernameLineEdit->clear();
                  passwordLineEdit->clear();
                  logdirLineEdit->setText("../log");
@@ -99,7 +99,7 @@ void SettingsDialog::initConnections() {
                  qDebug() << "Qt UI: SettingsDialog ok button done";
                  LOG(INFO) << "Qt UI: SettingsDialog ok button done";
     });
-    connect(backendManager, &BackendManager::authFailed, this, [this] (int errcode) {
+    connect(backendManager, &BackendManager::loginFailed, this, [this] (int errcode) {
         settingsStatus->setText("Auth failed! Errcode: " + QString::number(errcode));
     });
 }
@@ -132,7 +132,6 @@ void SettingsDialog::slotOkButtonDone() {
        !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
         backendManager->login(usernameLineEdit->text(),
                               passwordLineEdit->text());
-
         // QObject::connect(reply, &QNetworkReply::finished, this, [&, reply](){
         //     if(reply->error() == QNetworkReply::NoError) {
         //         LOG(INFO) << reply->readAll().toStdString();

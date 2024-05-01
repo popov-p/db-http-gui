@@ -54,10 +54,10 @@ void MainWindow::initCentralStackedWidget() {
 void MainWindow::initConnections() {
     connect(connectWidget, &ConnectWidget::connectButtonClicked,
             this, &MainWindow::slotConnectButtonClicked);
-    connect(backendManager, &BackendManager::authSuccessful,
+    connect(backendManager, &BackendManager::loginSuccessful,
             this, &MainWindow::slotConnectionSuccessful);
     connect(settingsDialog, &SettingsDialog::okButtonDone,
-            mainWidget, &MainWidget::slotAuthSuccessful);
+            mainWidget, &MainWidget::slotLoginSuccessful);
     connect(mainWidget, &MainWidget::disconnectButtonClicked,
             this, &MainWindow::slotDisconnectButtonClicked);
     connect (mainWidget, &MainWidget::disconnectButtonClicked,

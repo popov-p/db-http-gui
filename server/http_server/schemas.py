@@ -24,3 +24,5 @@ class FieldsRequest(BaseModel):
     total:List[str]
     alphabetic: List[str]
     comparable: List[str]
+    years: List[int]
+    courses: List[int]

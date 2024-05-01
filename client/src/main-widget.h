@@ -27,7 +27,7 @@ public:
     MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
     ~MainWidget();
 public slots:
-    void slotAuthSuccessful();
+    void slotLoginSuccessful();
 private:
     AddElementDialog *addElementDialog;
     QVBoxLayout *widgetVLayout;
@@ -55,6 +55,7 @@ private:
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
 
+    QMap<QString, QStringList> fieldsMap;
     BackendManager *backendManager = nullptr;
 
     void initHeaderLayout();
@@ -68,6 +69,7 @@ private slots:
     void slotAddButtonClicked();
     void slotDeleteSelecterRows();
     void slotDisconnectButtonClicked();
+    void slotGetFieldsSuccessful(QMap<QString, QStringList> fieldsMap);
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

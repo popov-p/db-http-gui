@@ -14,21 +14,24 @@ public:
     ~BackendManager();
 
     void login(QString username, QString password);
-    void retrieveDbFields();
+    void getDbFields();
     /*methods to access database fields here*/
     void logout();
 private:
     QNetworkAccessManager *networkManager;
     QMap<QString, std::function<void(QNetworkReply*)>> replyHandlers;
     void handleLogin(QNetworkReply *reply);
+    void handleDBFields(QNetworkReply *reply);
 
     void initConnections();
 private slots:
     void slotRequestFinished(QNetworkReply *reply);
 signals:
-    void authSuccessful();
-    void authFailed(QNetworkReply::NetworkError errcode);
-    void retrieveDBFieldsSuccessful();
+    void loginSuccessful();
+    void loginFailed(QNetworkReply::NetworkError errcode);
+    void getFieldsSuccessful(QMap<QString, QStringList> fields);
+    void getFieldsFailed(QNetworkReply::NetworkError errcode);
+    //void retrieveDBFieldsSuccessful();
     //void
 };
 
