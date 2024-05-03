@@ -163,6 +163,6 @@ void AddElementDialog::inputFieldsCleanup() {
         delete layout;
         delete label;
         delete lineEdit;
-        alphabeticFields.clear();
+        alphabeticFields.clear(); /*fix this*/
     }
 }

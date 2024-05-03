@@ -15,28 +15,37 @@ public:
     ~BackendManager();
     void setBaseURL(QString url);
     void login(QString username, QString password);
-    void getDbFields();
-    void getAllDbRecordings();
+    void getHeaders();
+    void getAllRecordings();
+    void deleteAllRecordings();
+    void deleteSelectedRecordings(const QList<int>& studentIds);
     /*methods to access database fields here*/
     void logout();
 private:
     QString baseUrl;
     QNetworkAccessManager *networkManager;
     QMap<QString, std::function<void(QNetworkReply*)>> replyHandlers;
+
     void handleLogin(QNetworkReply *reply);
-    void handleDBFields(QNetworkReply *reply);
-    void handleAllDbRecordings(QNetworkReply *reply);
+    void handleGetHeaders(QNetworkReply *reply);
+    void handleGetAllRecordings(QNetworkReply *reply);
+    void handleDeleteAllRecordings(QNetworkReply *reply);
+    void handleDeleteSelectedRecordings(QNetworkReply *reply);
+
     void initConnections();
 private slots:
     void slotRequestFinished(QNetworkReply *reply);
 signals:
     void loginSuccessful();
     void loginFailed(QNetworkReply::NetworkError errcode);
-    void getFieldsSuccessful(QMap<QString, QStringList> fields);
-    void getFieldsFailed(QNetworkReply::NetworkError errcode);
-    void getAllDbRecordingsSuccessful(QList<QList<QStandardItem*>> rows);
-    void getAllDbRecordingsFailed(QNetworkReply::NetworkError errcode);
-
+    void getHeadersSuccessful(QMap<QString, QStringList> fields);
+    void getHeadersFailed(QNetworkReply::NetworkError errcode);
+    void getAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
+    void getAllRecordingsFailed(QNetworkReply::NetworkError errcode);
+    void deleteAllRecordingsSuccessful(int countDeleted);
+    void deleteAllRecordingsFailed(QNetworkReply::NetworkError errcode);
+    void deleteSelectedRecordingsSuccessful();
+    void deleteSelectedRecordingsFailed(QNetworkReply::NetworkError errcode);
 };
 
 void multiarg(QByteArray& ba);

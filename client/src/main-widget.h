@@ -54,8 +54,9 @@ private:
     QComboBox *compareElementsComboBox;
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
-    QStringList totalFields;
     QMap<QString, QStringList> addCompMap;
+    QStringList totalFields;
+    int idLogicalIndex = -1;
     BackendManager *backendManager = nullptr;
 
     void initHeaderLayout();
@@ -67,10 +68,12 @@ private:
 
 private slots:
     void slotAddButtonClicked();
-    void slotDeleteSelecterRows();
+    //void slotDeleteSelectedRows();
     void slotDisconnectButtonClicked();
-    void slotGetFieldsSuccessful(QMap<QString, QStringList> fieldsMap);
-    void slotGetAllDbRecordingsSuccessful(QList<QList<QStandardItem*>> rows);
+    void slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMap);
+    void slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
+    void slotDeleteAllRecordingsSuccessful(int countDeleted);
+    void slotDeleteSelectedRecordingsSuccessful();
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

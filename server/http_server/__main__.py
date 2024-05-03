@@ -67,8 +67,8 @@ def get_fields(db: Session = Depends(get_db)):
     total = [key for key in Student.__table__.columns.keys()]
     #total = Student.__table__.columns.keys()
     alphabetic = ["last_name", "first_name", "patronymic", "group"]
-    comparable = ["year","course"]
-    
+    comparable = ["year", "course"]
+
     years = [year[0] for year in db.query(Student.year).distinct().all()]
     courses = [course[0] for course in db.query(Student.course).distinct().all()]
 

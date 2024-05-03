@@ -17,32 +17,54 @@ void BackendManager::login(QString username, QString password) {
     multiarg(credentials, username, ":", password);
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
-    qDebug() << "login";
+    //qDebug() << "login";
     networkManager->post(request, QByteArray());;
 }
 
-void BackendManager::getDbFields() {
+void BackendManager::getHeaders() {
     QNetworkRequest request(QUrl("http://127.0.0.1:8000/fields"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
-    qDebug() << "login";
+    //qDebug() << "login";
     networkManager->get(request);
 }
 
-void BackendManager::getAllDbRecordings() {
+void BackendManager::getAllRecordings() {
     QNetworkRequest request(QUrl("http://127.0.0.1:8000/students"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
-    qDebug() << "get All Db recordings";
     networkManager->get(request);
 }
 
+void BackendManager::deleteAllRecordings() {
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students//*upd-this*/"));
+    QByteArray credentials;
+    multiarg(credentials, "pavel", ":", "popov");
+    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    request.setTransferTimeout(500);
+    networkManager->deleteResource(request);
+}
+
+void BackendManager::deleteSelectedRecordings(const QList<int>& studentIds) {
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/selected"));
+    QByteArray credentials;
+    multiarg(credentials, "pavel", ":", "popov");
+    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    QJsonArray jsonArray;
+    for (int studentId : studentIds) {
+        jsonArray.append(studentId);
+    }
+    QByteArray data = QJsonDocument(jsonArray).toJson();
+
+    networkManager->sendCustomRequest(request, "DELETE", data);
+}
+
 void BackendManager::slotRequestFinished(QNetworkReply *reply) {
-    qDebug() << "slotRequestFinished (all requests handler)";
+    //qDebug() << "slotRequestFinished (all requests handler)";
     QString url = reply->url().toString();
         if (replyHandlers.contains(url)) {
             replyHandlers[url](reply);
@@ -54,18 +76,15 @@ void BackendManager::slotRequestFinished(QNetworkReply *reply) {
 }
 
 void BackendManager::handleLogin(QNetworkReply *reply) {
-    qDebug() << "This output is from auth lambda inside";
     if (reply->error() == QNetworkReply::NoError) {
-        qDebug() << "Authentication successful";
         emit loginSuccessful();
     } else {
-        qDebug() << "Authentication failed";
         emit loginFailed(reply->error());
     }
     reply->deleteLater();
 }
 
-void BackendManager::handleDBFields(QNetworkReply *reply) {
+void BackendManager::handleGetHeaders(QNetworkReply *reply) {
     if (reply->error() == QNetworkReply::NoError) {
         QStringList keys = {"total", "alphabetic", "comparable"};
         QByteArray responseData = reply->readAll();
@@ -80,25 +99,21 @@ void BackendManager::handleDBFields(QNetworkReply *reply) {
                     for (const QJsonValue& value : jsonArray) {
                         list.append(value.toString());
                     }
-                    qDebug() << "Fields List: " << list;
                     fieldsMapResponse[key] = list;
                 }
-                emit getFieldsSuccessful(fieldsMapResponse);
+                emit getHeadersSuccessful(fieldsMapResponse);
             } else {
-                qDebug() << "Invalid JSON format";
-                emit getFieldsFailed(QNetworkReply::ContentConflictError);
+                emit getHeadersFailed(QNetworkReply::ContentConflictError);
             }
         } else {
-            qDebug() << "Failed to parse JSON response";
-            emit getFieldsFailed(QNetworkReply::UnknownContentError);
+            emit getHeadersFailed(QNetworkReply::UnknownContentError);
         }
     } else {
-        qDebug() << reply->errorString();
-        emit getFieldsFailed(reply->error());
+        emit getHeadersFailed(reply->error());
     }
 }
 
-void BackendManager::handleAllDbRecordings(QNetworkReply *reply) {
+void BackendManager::handleGetAllRecordings(QNetworkReply *reply) {
     if (reply->error() == QNetworkReply::NoError) {
         QByteArray data = reply->readAll();
         QJsonDocument jsonDocument = QJsonDocument::fromJson(data);
@@ -124,22 +139,52 @@ void BackendManager::handleAllDbRecordings(QNetworkReply *reply) {
                     }
                     rows.append(row);
                 }
+                else {
+                    emit getAllRecordingsFailed(QNetworkReply::UnknownContentError);
+                }
             }
-
-        //qDebug() << "Received data:" << data;
-        emit getAllDbRecordingsSuccessful(rows);
+            if (!jsonArray.isEmpty() && jsonArray.at(0).isObject()) {
+                QJsonObject firstObject = jsonArray.at(0).toObject();
+                QStringList keys = firstObject.keys();
+                qDebug() << "List of keys:" << keys;
+                emit getAllRecordingsSuccessful(keys, rows);
+            }
         }
         else {
-            qDebug() << reply->errorString();
-            emit getAllDbRecordingsFailed(reply->error());
+            emit getAllRecordingsFailed(QNetworkReply::ContentConflictError);
         }
     }
+    else {
+        emit getAllRecordingsFailed(reply->error());
+    }
+}
+
+void BackendManager::handleDeleteAllRecordings(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        QByteArray responseData = reply->readAll();
+        QString responseString = QString::fromUtf8(responseData);
+        bool ok;
+        int deletedCount = responseString.toInt(&ok);
+        if (ok) {
+            emit deleteAllRecordingsSuccessful(deletedCount);
+        } else {
+            emit deleteAllRecordingsFailed(QNetworkReply::ContentConflictError);
+        }
+    } else {
+        emit deleteAllRecordingsFailed(reply->error());
+    }
+}
+
+void BackendManager::handleDeleteSelectedRecordings(QNetworkReply *reply) {
+
 }
 
 void BackendManager::initConnections() {
     replyHandlers["http://127.0.0.1:8000/auth"] = std::bind(&BackendManager::handleLogin, this, std::placeholders::_1);
-    replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleDBFields, this, std::placeholders::_1);
-    replyHandlers["http://127.0.0.1:8000/students"] = std::bind(&BackendManager::handleAllDbRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleGetHeaders, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/students"] = std::bind(&BackendManager::handleGetAllRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/students/"] = std::bind(&BackendManager::handleDeleteAllRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/students/selected"] = std::bind(&BackendManager::handleDeleteSelectedRecordings, this, std::placeholders::_1);
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }
 
