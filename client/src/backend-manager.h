@@ -19,6 +19,7 @@ public:
     void getAllRecordings();
     void deleteAllRecordings();
     void deleteSelectedRecordings(const QList<int>& studentIds);
+    void addRecording(std::map<QString, std::variant<QString, int>> dataMap);
     /*methods to access database fields here*/
     void logout();
 private:
@@ -31,6 +32,7 @@ private:
     void handleGetAllRecordings(QNetworkReply *reply);
     void handleDeleteAllRecordings(QNetworkReply *reply);
     void handleDeleteSelectedRecordings(QNetworkReply *reply);
+    void handleAddRecording(QNetworkReply *reply);
 
     void initConnections();
 private slots:
@@ -46,6 +48,8 @@ signals:
     void deleteAllRecordingsFailed(QNetworkReply::NetworkError errcode);
     void deleteSelectedRecordingsSuccessful();
     void deleteSelectedRecordingsFailed(QNetworkReply::NetworkError errcode);
+    void addRecordingSuccessful();
+    void addRecordingFailed(QNetworkReply::NetworkError errcode);
 };
 
 void multiarg(QByteArray& ba);

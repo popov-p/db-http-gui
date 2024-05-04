@@ -68,12 +68,12 @@ private:
 
 private slots:
     void slotAddButtonClicked();
-    //void slotDeleteSelectedRows();
     void slotDisconnectButtonClicked();
     void slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMap);
     void slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
     void slotDeleteAllRecordingsSuccessful(int countDeleted);
     void slotDeleteSelectedRecordingsSuccessful();
+    void slotAddRecordingSuccessful();
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

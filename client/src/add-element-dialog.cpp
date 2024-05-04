@@ -63,42 +63,44 @@ void AddElementDialog::initConnections() {
     connect(deletePhotoButton, &QPushButton::clicked, this, &AddElementDialog::slotDeletePhotoButtonClicked);
 }
 
-AddElementDialog::~AddElementDialog() {
-    delete okDialogButton;
-    delete cancelDialogButton;
-    delete settingsStatus;
-    delete hButtonLayout;
-    delete hSettingsStatusLayout;
-    delete verticalDialogLayout;
-    delete addPhotoButton;
-    delete photoLabel;
-    delete photoPathLineEdit;
-
-
-}
-
 void AddElementDialog::slotOkButtonDone() {
     qDebug() << "Qt : AddElementDialog slot ok button done";
-
     bool validation_success = true;
+    std::map<QString, std::variant<QString, int>> dataMap;
 
     auto widgetLists = {alphabeticFields, comparableFields};
     for (const auto& widgetList: widgetLists) {
         for (const auto& widgetTuple: widgetList) {
-            if (std::get<2>(widgetTuple)->text().isEmpty()) {
+            QLineEdit* lineEdit = std::get<2>(widgetTuple);
+            QString fieldKey = std::get<1>(widgetTuple)->text().remove(": ");
+
+            if (lineEdit->text().isEmpty()) {
                 settingsStatus->setText("Only photo field is optional!");
                 validation_success = false;
+                dataMap.clear();
+            }
+            else if (lineEdit->text().toInt()) {
+                dataMap[fieldKey] = lineEdit->text().toInt();
+            }
+            else{
+                dataMap[fieldKey] = lineEdit->text();
             }
         }
     }
+    dataMap["photo"] = "bytearray or string idk";
+
     if (validation_success) {
         hide();
         inputFieldsCleanup();
         photoPathLineEdit->clear();
         settingsStatus->clear();
+
+        backendManager->addRecording(dataMap);
         emit okButtonDone();
     }
-
+    else {
+        settingsStatus->setText("Add correct data");
+    }
 }
 
 void AddElementDialog::slotCancelButtonClicked() {
@@ -155,6 +157,10 @@ void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList
     }
 }
 
+void AddElementDialog::setTotalFields(QStringList fieldsList) {
+    totalFields = fieldsList;
+}
+
 void AddElementDialog::inputFieldsCleanup() {
     for (const auto& widgetTuple:alphabeticFields) {
         QHBoxLayout *layout = std::get<0>(widgetTuple);
@@ -165,4 +171,16 @@ void AddElementDialog::inputFieldsCleanup() {
         delete lineEdit;
         alphabeticFields.clear(); /*fix this*/
     }
+}
+
+AddElementDialog::~AddElementDialog() {
+    delete okDialogButton;
+    delete cancelDialogButton;
+    delete settingsStatus;
+    delete hButtonLayout;
+    delete hSettingsStatusLayout;
+    delete verticalDialogLayout;
+    delete addPhotoButton;
+    delete photoLabel;
+    delete photoPathLineEdit;
 }

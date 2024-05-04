@@ -41,7 +41,7 @@ void BackendManager::getAllRecordings() {
 }
 
 void BackendManager::deleteAllRecordings() {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students//*upd-this*/"));
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
@@ -49,8 +49,8 @@ void BackendManager::deleteAllRecordings() {
     networkManager->deleteResource(request);
 }
 
-void BackendManager::deleteSelectedRecordings(const QList<int>& studentIds) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/selected"));
+void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/delete_selected"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
@@ -61,6 +61,36 @@ void BackendManager::deleteSelectedRecordings(const QList<int>& studentIds) {
     QByteArray data = QJsonDocument(jsonArray).toJson();
 
     networkManager->sendCustomRequest(request, "DELETE", data);
+}
+
+void BackendManager::addRecording(std::map<QString, std::variant<QString, int>> dataMap) {
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/add"));
+    QByteArray credentials;
+    multiarg(credentials, "pavel", ":", "popov");
+
+    QJsonObject jsonObject;
+
+    for (const auto& pair : dataMap) {
+        QString key = pair.first;
+        std::variant<QString, int> value = pair.second;
+
+        if (std::holds_alternative<QString>(value)) {
+            QString stringValue = std::get<QString>(value);
+            jsonObject[key] = QJsonValue(stringValue);
+        }
+        else if (std::holds_alternative<int>(value)) {
+            int intValue = std::get<int>(value);
+            jsonObject[key] = QJsonValue(intValue);
+        }
+    }
+    QJsonDocument jsonDocument(jsonObject);
+    //QByteArray jsonData = jsonDocument.toJson();
+    QByteArray jsonData = QJsonDocument(jsonObject).toJson(QJsonDocument::Indented);
+
+    // Выводим массив байтов с кавычками для строковых значений
+    qDebug().noquote() << jsonData;
+
+    networkManager->sendCustomRequest(request, "POST", jsonData);
 }
 
 void BackendManager::slotRequestFinished(QNetworkReply *reply) {
@@ -176,7 +206,21 @@ void BackendManager::handleDeleteAllRecordings(QNetworkReply *reply) {
 }
 
 void BackendManager::handleDeleteSelectedRecordings(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        emit deleteSelectedRecordingsSuccessful();
+    }
+    else {
+        emit deleteSelectedRecordingsFailed(reply->error());
+    }
+}
 
+void BackendManager::handleAddRecording(QNetworkReply *reply) {
+    if (reply->error() == QNetworkReply::NoError) {
+        emit addRecordingSuccessful();
+    }
+    else {
+        emit addRecordingFailed(reply->error());
+    }
 }
 
 void BackendManager::initConnections() {
@@ -184,7 +228,8 @@ void BackendManager::initConnections() {
     replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleGetHeaders, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/students"] = std::bind(&BackendManager::handleGetAllRecordings, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/students/"] = std::bind(&BackendManager::handleDeleteAllRecordings, this, std::placeholders::_1);
-    replyHandlers["http://127.0.0.1:8000/students/selected"] = std::bind(&BackendManager::handleDeleteSelectedRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/students/delete_selected"] = std::bind(&BackendManager::handleDeleteSelectedRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/add"] = std::bind(&BackendManager::handleAddRecording, this, std::placeholders::_1);
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }
 

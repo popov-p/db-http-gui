@@ -1,6 +1,6 @@
 
 from fastapi import FastAPI
-from fastapi import Depends
+from fastapi import Depends, Response
 from sqlalchemy.orm import sessionmaker
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -50,10 +50,6 @@ def get_db():
     finally:
         db.close()
 
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
-
 @app.post("/auth")
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = username
@@ -76,39 +72,24 @@ def get_fields(db: Session = Depends(get_db)):
 
 
 # Create student
-@app.post("/create-student/", response_model=schemas.StudentCreate)
+@app.post("/add", response_model=schemas.StudentCreate)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
-
-
-# Read student by ID
-@app.get("/students/{student_id}", response_model=schemas.Student)
-def read_student(student_id: int, db: Session = Depends(get_db)):
-    db_student = crud.get_student(db, student_id=student_id)
-    if db_student is None:
-        raise HTTPException(status_code=404, detail="Student not found")
-    return db_student
 
 @app.get("/students", response_model=List[schemas.Student])
 def get_all_students(db: Session = Depends(get_db)):
     return crud.get_all_students(db)
 
-# Update student by ID 
-@app.put("/students/{student_id}", response_model=schemas.Student)
-def update_student(student_id: int, student: schemas.StudentUpdate, db: Session = Depends(get_db)):
-    db_student = crud.get_student(db, student_id=student_id)
-    if db_student is None:
-        raise HTTPException(status_code=404, detail="Student not found")
-    return crud.update_student(db=db, student=student, student_id=student_id)
-
-# Delete student by ID 
-@app.delete("/students/{student_id}")
-def delete_student(student_id: int, db: Session = Depends(get_db)):
-    db_student = crud.get_student(db, student_id=student_id)
-    if db_student is None:
-        raise HTTPException(status_code=404, detail="Student not found")
-    crud.delete_student(db=db, student_id=student_id)
-    return {"message": "Student deleted successfully"}
+# Delete selected students ID 
+@app.delete("/students/delete_selected")
+def delete_student(data: List[int], db: Session = Depends(get_db)):
+    if data is not None:
+        for delete_id in data:
+            db_student = crud.get_student(db, student_id=delete_id)
+            if db_student is None:
+                raise HTTPException(status_code=404, detail="Student not found")
+            crud.delete_student(db=db, student_id=delete_id)
+    return Response(status_code=200)
 
 # Delete all students 
 @app.delete("/students/", response_model=int)

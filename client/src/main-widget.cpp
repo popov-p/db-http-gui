@@ -43,15 +43,10 @@ void MainWidget::slotDisconnectButtonClicked() {
     emit disconnectButtonClicked();
 }
 
-// void MainWidget::slotDeleteSelectedRows() {
-//     QModelIndexList selectedIndexes = tableView->selectionModel()->selectedRows();
-//     for (int i = selectedIndexes.count() - 1; i >= 0; --i) {
-//         model->removeRow(selectedIndexes.at(i).row());
-//     }
-// }
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot add button clicked";
+    addElementDialog->setTotalFields(totalFields);
     auto it = addCompMap.constBegin();
     while (it != addCompMap.constEnd()) {
         const auto& key = it.key();
@@ -93,6 +88,7 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
 
     compareComboBox->addItems(addCompMap["comparable"]);
     startsWithLetterComboBox->addItems(addCompMap["alphabetic"]);
+
     //model->setHorizontalHeaderLabels(totalFields);
     backendManager->getAllRecordings();
     //qDebug() << "total fields ON DOWNLOAD are: ---" << totalFields.size();
@@ -121,16 +117,22 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
 
 void MainWidget::slotDeleteAllRecordingsSuccessful(int countDeleted) {
     model->clear();
-    responseLabel->setText("Deleted " + QString::number(countDeleted) + "recordings");
+    responseLabel->setText("Deleted " + QString::number(countDeleted) + " recordings");
 }
 
 void MainWidget::slotDeleteSelectedRecordingsSuccessful() {
-
+    qDebug() << "slotDeleteSelectedRecordingsSuccessful";
+    responseLabel->setText("Delete successful!");
+    model->clear();
+    backendManager->getAllRecordings();
 }
 
-
-
-
+void MainWidget::slotAddRecordingSuccessful() {
+    qDebug() << "slotAddRecordingSuccessful";
+    responseLabel->setText("Add successful!");
+    model->clear();
+    backendManager->getAllRecordings();
+}
 
 
 
@@ -222,8 +224,20 @@ void MainWidget::initWidgetVLayout() {
 void MainWidget::initConnections() {
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
-    connect(deleteSelectedButton, &QPushButton::clicked, this, [this]() {
-        //backendManager->deleteSelectedRecordings();
+    connect(deleteSelectedButton, &QPushButton::clicked, this, [this] () {
+        QModelIndexList selectedIndexes = tableView->selectionModel()->selectedRows();
+        if (!selectedIndexes.empty()) {
+            QVector<int> selectedIds;
+            for (const QModelIndex &index : selectedIndexes) {
+                QModelIndex idIndex = index.sibling(index.row(), idLogicalIndex);
+                int id = idIndex.data(Qt::DisplayRole).toInt();
+                selectedIds.append(id);
+            }
+            backendManager->deleteSelectedRecordings(selectedIds);
+        }
+        else {
+            responseLabel->setText("Nothing to delete");
+        }
     });
     connect(deleteAllButton, &QPushButton::clicked,this, [this] () {
         backendManager->deleteAllRecordings();
@@ -233,6 +247,7 @@ void MainWidget::initConnections() {
     connect(backendManager, &BackendManager::getAllRecordingsSuccessful, this, &MainWidget::slotGetAllRecordingsSuccessful);
     connect(backendManager, &BackendManager::deleteAllRecordingsSuccessful, this, &MainWidget::slotDeleteAllRecordingsSuccessful);
     connect(backendManager, &BackendManager::deleteSelectedRecordingsSuccessful, this, &MainWidget::slotDeleteSelectedRecordingsSuccessful);
+    connect(backendManager, &BackendManager::addRecordingSuccessful, this, &MainWidget::slotAddRecordingSuccessful);
 }
 
 MainWidget::~MainWidget() {
