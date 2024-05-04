@@ -18,6 +18,7 @@
 #include <QHeaderView>
 #include <QNetworkAccessManager>
 #include <QAuthenticator>
+#include <QTimer>
 #include "add-element-dialog.h"
 #include "backend-manager.h"
 
@@ -35,7 +36,8 @@ private:
     QPushButton *addButton;
     QPushButton *deleteSelectedButton;
     QPushButton *deleteAllButton;
-    QLabel *responseLabel;
+    QLineEdit *responseLabel;
+    QTimer *responseLabelTimer;
     QLabel *usernameLabel;
     QHBoxLayout *hHeaderLayout;
     QHBoxLayout *hResponseLabelLayout;

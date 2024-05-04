@@ -24,7 +24,6 @@ class AddElementDialog : public QDialog {
 public:
     AddElementDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void setInputFields(QString fieldsType, QStringList fieldsList);
-    void setTotalFields(QStringList fieldsList);
     ~AddElementDialog();
 public slots:
     void slotOkButtonDone();
@@ -35,7 +34,6 @@ public slots:
 private:
     QList<WidgetTuple> alphabeticFields;
     QList<WidgetTuple> comparableFields;
-    QStringList totalFields;
     QRegularExpressionValidator *alphabeticValidator;
     QIntValidator *comparableValidator;
     QPushButton *okDialogButton;

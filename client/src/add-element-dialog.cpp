@@ -105,6 +105,7 @@ void AddElementDialog::slotOkButtonDone() {
 
 void AddElementDialog::slotCancelButtonClicked() {
     LOG(INFO) << "Qt: AddElementDialog slotCancelButtonClicked";
+
     inputFieldsCleanup();
     photoPathLineEdit->clear();
     settingsStatus->clear();
@@ -157,19 +158,12 @@ void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList
     }
 }
 
-void AddElementDialog::setTotalFields(QStringList fieldsList) {
-    totalFields = fieldsList;
-}
-
 void AddElementDialog::inputFieldsCleanup() {
-    for (const auto& widgetTuple:alphabeticFields) {
-        QHBoxLayout *layout = std::get<0>(widgetTuple);
-        QLabel *label = std::get<1>(widgetTuple);
-        QLineEdit *lineEdit = std::get<2>(widgetTuple);
-        delete layout;
-        delete label;
-        delete lineEdit;
-        alphabeticFields.clear(); /*fix this*/
+    auto widgetLists = {alphabeticFields, comparableFields};
+    for (const auto& widgetList: widgetLists) {
+        for (const auto& widgetTuple: widgetList) {
+            std::get<2>(widgetTuple)->clear();
+        }
     }
 }
 

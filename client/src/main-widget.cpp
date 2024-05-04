@@ -46,14 +46,6 @@ void MainWidget::slotDisconnectButtonClicked() {
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot add button clicked";
-    addElementDialog->setTotalFields(totalFields);
-    auto it = addCompMap.constBegin();
-    while (it != addCompMap.constEnd()) {
-        const auto& key = it.key();
-        const auto& value = it.value();
-        addElementDialog->setInputFields(key, value);
-        ++it;
-    }
     addElementDialog->exec();
 }
 
@@ -89,9 +81,15 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
     compareComboBox->addItems(addCompMap["comparable"]);
     startsWithLetterComboBox->addItems(addCompMap["alphabetic"]);
 
-    //model->setHorizontalHeaderLabels(totalFields);
+    auto it = addCompMap.constBegin();
+    while (it != addCompMap.constEnd()) {
+        const auto& key = it.key();
+        const auto& value = it.value();
+        addElementDialog->setInputFields(key, value);
+        ++it;
+    }
+
     backendManager->getAllRecordings();
-    //qDebug() << "total fields ON DOWNLOAD are: ---" << totalFields.size();
 }
 
 void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows) {
@@ -117,7 +115,12 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
 
 void MainWidget::slotDeleteAllRecordingsSuccessful(int countDeleted) {
     model->clear();
-    responseLabel->setText("Deleted " + QString::number(countDeleted) + " recordings");
+    if (!countDeleted) {
+        responseLabel->setText("Nothing to delete");
+    }
+    else {
+        responseLabel->setText("Deleted " + QString::number(countDeleted) + " recordings");
+    }
 }
 
 void MainWidget::slotDeleteSelectedRecordingsSuccessful() {
@@ -133,8 +136,6 @@ void MainWidget::slotAddRecordingSuccessful() {
     model->clear();
     backendManager->getAllRecordings();
 }
-
-
 
 
 void MainWidget::initHeaderLayout() {
@@ -160,7 +161,10 @@ void MainWidget::initHeaderLayout() {
 }
 
 void MainWidget::initResponseLabelLayout() {
-    responseLabel = new QLabel("response status will be here");
+    responseLabel = new QLineEdit("response status will be here");
+    responseLabelTimer = new QTimer();
+    responseLabel->setReadOnly(true);
+    responseLabel->setFocusPolicy(Qt::NoFocus);
     hResponseLabelLayout = new QHBoxLayout();
 
     responseLabel->setFixedSize(300, 20);
@@ -222,6 +226,12 @@ void MainWidget::initWidgetVLayout() {
 }
 
 void MainWidget::initConnections() {
+    QObject::connect(responseLabel, &QLineEdit::textChanged, this, [=]() {
+        responseLabelTimer->start(500);
+    });
+    QObject::connect(responseLabelTimer, &QTimer::timeout, this, [=]() {
+        responseLabel->clear();
+    });
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
     connect(deleteSelectedButton, &QPushButton::clicked, this, [this] () {

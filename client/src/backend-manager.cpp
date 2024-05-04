@@ -41,7 +41,7 @@ void BackendManager::getAllRecordings() {
 }
 
 void BackendManager::deleteAllRecordings() {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/"));
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/delete-all"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
@@ -50,7 +50,7 @@ void BackendManager::deleteAllRecordings() {
 }
 
 void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students/delete_selected"));
+    QNetworkRequest request(QUrl("http://127.0.0.1:8000/delete-selected"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
@@ -84,11 +84,7 @@ void BackendManager::addRecording(std::map<QString, std::variant<QString, int>> 
         }
     }
     QJsonDocument jsonDocument(jsonObject);
-    //QByteArray jsonData = jsonDocument.toJson();
     QByteArray jsonData = QJsonDocument(jsonObject).toJson(QJsonDocument::Indented);
-
-    // Выводим массив байтов с кавычками для строковых значений
-    qDebug().noquote() << jsonData;
 
     networkManager->sendCustomRequest(request, "POST", jsonData);
 }
@@ -227,8 +223,8 @@ void BackendManager::initConnections() {
     replyHandlers["http://127.0.0.1:8000/auth"] = std::bind(&BackendManager::handleLogin, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/fields"] = std::bind(&BackendManager::handleGetHeaders, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/students"] = std::bind(&BackendManager::handleGetAllRecordings, this, std::placeholders::_1);
-    replyHandlers["http://127.0.0.1:8000/students/"] = std::bind(&BackendManager::handleDeleteAllRecordings, this, std::placeholders::_1);
-    replyHandlers["http://127.0.0.1:8000/students/delete_selected"] = std::bind(&BackendManager::handleDeleteSelectedRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/delete-all"] = std::bind(&BackendManager::handleDeleteAllRecordings, this, std::placeholders::_1);
+    replyHandlers["http://127.0.0.1:8000/delete-selected"] = std::bind(&BackendManager::handleDeleteSelectedRecordings, this, std::placeholders::_1);
     replyHandlers["http://127.0.0.1:8000/add"] = std::bind(&BackendManager::handleAddRecording, this, std::placeholders::_1);
     QObject::connect(networkManager, &QNetworkAccessManager::finished, this, &BackendManager::slotRequestFinished);
 }

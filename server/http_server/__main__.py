@@ -81,7 +81,7 @@ def get_all_students(db: Session = Depends(get_db)):
     return crud.get_all_students(db)
 
 # Delete selected students ID 
-@app.delete("/students/delete_selected")
+@app.delete("/delete-selected")
 def delete_student(data: List[int], db: Session = Depends(get_db)):
     if data is not None:
         for delete_id in data:
@@ -92,6 +92,6 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
     return Response(status_code=200)
 
 # Delete all students 
-@app.delete("/students/", response_model=int)
+@app.delete("/delete-all", response_model=int)
 def delete_all_students(db: Session = Depends(get_db)):
     return crud.delete_all_students(db=db)
