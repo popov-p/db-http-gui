@@ -82,7 +82,7 @@ void AddElementDialog::slotOkButtonDone() {
             else if (lineEdit->text().toInt()) {
                 dataMap[fieldKey] = lineEdit->text().toInt();
             }
-            else {
+            else{
                 dataMap[fieldKey] = lineEdit->text();
             }
         }

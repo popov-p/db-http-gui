@@ -8,7 +8,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import FieldsRequest, StudentCreate
+from server.http_server.schemas import FieldsRequest, StudentCreate, Filter
 from server.http_server import crud
 import os
 from configparser import ConfigParser
@@ -92,3 +92,7 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
 @app.delete("/delete-all", response_model=int)
 def delete_all_students(db: Session = Depends(get_db)):
     return crud.delete_all_students(db=db)
+
+@app.get("filter", response_model=List[int])
+def filter_by(data: schemas.Filter, db: Session = Depends(get_db)):
+    return crud.filter(db=db, keyfields=data)

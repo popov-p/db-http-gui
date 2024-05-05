@@ -20,23 +20,13 @@ public:
     void deleteAllRecordings();
     void deleteSelectedRecordings(const QList<int>& studentIds);
     void addRecording(const std::map<QString, std::variant<QString, int>>& dataMap);
+    void filteredSelect(const std::map<QString, std::variant<QString, int>>& requestArgs);
     /*methods to access database fields here*/
     void logout();
 private:
     QString baseUrl;
     QNetworkAccessManager *networkManager;
-    QMap<QString, std::function<void(QNetworkReply*)>> replyHandlers;
-
-    void handleLogin(QNetworkReply *reply);
-    void handleGetHeaders(QNetworkReply *reply);
-    void handleGetAllRecordings(QNetworkReply *reply);
-    void handleDeleteAllRecordings(QNetworkReply *reply);
-    void handleDeleteSelectedRecordings(QNetworkReply *reply);
-    void handleAddRecording(QNetworkReply *reply);
-
-    void initConnections();
-private slots:
-    void slotRequestFinished(QNetworkReply *reply);
+    QByteArray formatJsonRequest(const std::map<QString, std::variant<QString, int>>& requestArgs);
 signals:
     void loginSuccessful();
     void loginFailed(QNetworkReply::NetworkError errcode);
@@ -50,6 +40,8 @@ signals:
     void deleteSelectedRecordingsFailed(QNetworkReply::NetworkError errcode);
     void addRecordingSuccessful();
     void addRecordingFailed(QNetworkReply::NetworkError errcode);
+    void filteredSelectSuccessful(QList<int> studentIds);
+    void filteredSelectFailed(QNetworkReply::NetworkError errcode);
 };
 
 void multiarg(QByteArray& ba);

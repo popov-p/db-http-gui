@@ -78,11 +78,15 @@ private:
 private slots:
     void slotAddButtonClicked();
     void slotDisconnectButtonClicked();
+    void slotFilterButtonClicked();
+    void slotUpdateCompareElementsComboBox(const QString& changedField);
+    void slotClearComparableFields();
     void slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMap);
     void slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
     void slotDeleteAllRecordingsSuccessful(int countDeleted);
     void slotDeleteSelectedRecordingsSuccessful();
     void slotAddRecordingSuccessful();
+    void slotFilterSelectSuccessful(QList<int> studentIds);
 signals:
     void disconnectButtonClicked();
     void addButtonClicked();

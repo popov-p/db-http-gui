@@ -23,3 +23,20 @@ def delete_all_students(db: Session):
     num_deleted = db.query(models.Student).delete()
     db.commit()
     return num_deleted
+
+def filter(db: Session, keyfields: schemas.Filter):
+    query = db.query(models.Student)
+
+    filters = [
+        getattr(models.Student, field) == value
+        for field, value in keyfields.dict().items()
+        if value is not None
+    ]
+
+    if filters:
+        query = query.filter(and_(*filters))
+
+    student_ids = [result[0] for result in results]
+    
+    return student_ids
+

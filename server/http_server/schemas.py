@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Union
+from typing import Optional, List
 
 
 class Student(BaseModel):
@@ -25,3 +25,12 @@ class FieldsRequest(BaseModel):
     total:List[str]
     alphabetic: List[str]
     comparable: List[str]
+
+class Filter(BaseModel):
+    last_name: Optional[str]
+    first_name: Optional[str]
+    patronymic: Optional[str]
+    group: Optional[str]
+    year: Optional[int]
+    course: Optional[int]
+    photo: Optional[str]

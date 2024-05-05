@@ -6,8 +6,6 @@
 #include <QDebug>
 
 MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : backendManager(backendManager) {
-    addElementDialog = new AddElementDialog(backendManager);
-
     initHeaderLayout();
     initResponseLabelLayout();
     initTableViewLayout();
@@ -50,7 +48,36 @@ void MainWidget::slotDisconnectButtonClicked() {
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Qt: MainWidget slot add button clicked";
+    addElementDialog = new AddElementDialog(backendManager, this);
+
+    QObject::connect(addElementDialog, &QDialog::finished, addElementDialog, [this]() {
+        addElementDialog->deleteLater();
+    });
+
+    auto it = alphCompMap.constBegin();
+    while (it != alphCompMap.constEnd()) {
+        const auto& key = it.key();
+        const auto& value = it.value();
+        addElementDialog->setInputFields(key, value);
+        ++it;
+    }
+
+    addElementDialog->show();
     addElementDialog->exec();
+}
+
+void MainWidget::slotUpdateCompareElementsComboBox(const QString& changedField) {
+    compareElementsComboBox->clear();
+    compareElementsComboBox->addItem("-");
+    if(changedField != "-") {
+        const QList<int>& intList = compHeaderData[changedField].second;
+        for (const int & value : intList) {
+            compareElementsComboBox->addItem(QString::number(value));
+        }
+    }
+    else {
+        compareElementsComboBox->clear();
+    }
 }
 
 void MainWidget::slotLoginSuccessful() {
@@ -87,19 +114,12 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
     compareComboBox->addItems(QStringList("-") << alphCompMap["comparable"]);
     startsWithLetterComboBox->addItems(QStringList("-") << alphCompMap["alphabetic"]);
 
-    auto it = alphCompMap.constBegin();
-    while (it != alphCompMap.constEnd()) {
-        const auto& key = it.key();
-        const auto& value = it.value();
-        addElementDialog->setInputFields(key, value);
-        ++it;
-    }
-
     backendManager->getAllRecordings();
 }
 
 void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows) {
     idLogicalIndex = currentKeyOrder.indexOf("id");
+    compHeaderData.clear();
     for (const QString& compField : alphCompMap["comparable"]) {
         compHeaderData[compField].first = currentKeyOrder.indexOf(compField);
     }
@@ -121,10 +141,7 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
 
     tableView->setColumnHidden(idLogicalIndex, true);
     fillColumnData(compHeaderData, model);
-
-    //qDebug() << compHeaderData;
-    //qDebug() <<"stop";
-
+    slotClearComparableFields();
 }
 
 void MainWidget::slotDeleteAllRecordingsSuccessful(int countDeleted) {
@@ -151,6 +168,75 @@ void MainWidget::slotAddRecordingSuccessful() {
     backendManager->getAllRecordings();
 }
 
+void MainWidget::slotClearComparableFields() {
+    startsWithLetterComboBox->setCurrentIndex(0);
+    alphabetComboBox->setCurrentIndex(0);
+    compareComboBox->setCurrentIndex(0);
+    compareElementsComboBox->setCurrentIndex(0);
+    geqCheckBox->setChecked(false);
+    leqCheckBox->setChecked(false);
+    dropFilterButton->hide();
+    filterButton->show();
+}
+void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds) {
+    int rowCount = model->rowCount();
+
+    for (int row = 0; row < rowCount; ++row) {
+        QModelIndex index = model->index(row, idLogicalIndex);
+        int id = model->data(index).toInt();
+
+        if (!studentIds.contains(id)) {
+            tableView->hideRow(row);
+        }
+    }
+}
+
+void MainWidget::slotFilterButtonClicked() {
+    std::map<QString, std::variant<QString, int>> requestArgs;
+    bool alphabereticFilterActive = startsWithLetterComboBox->currentText() != "-";
+    bool alphabeticFilterCorrect = alphabetComboBox->currentText() != "-";
+    bool comparableFilterActive = compareComboBox->currentText() != "-";
+    bool comparableFilterCorrect = compareElementsComboBox->currentText() != "-";
+    if (!alphabereticFilterActive && !comparableFilterActive) {
+        responseLabel->setText("Nothing to filter!");
+        dropFilterButton->hide();
+    }
+    else if (alphabereticFilterActive && !comparableFilterActive) {
+        if (alphabeticFilterCorrect) {
+            requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
+            backendManager->filteredSelect(requestArgs);
+            dropFilterButton->show();
+        }
+        else {
+            requestArgs.clear();
+            responseLabel->setText("Choose correct letter");
+        }
+    }
+    else if (!alphabereticFilterActive && comparableFilterActive) {
+        if (comparableFilterCorrect) {
+            requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
+            backendManager->filteredSelect(requestArgs);
+            dropFilterButton->show();
+        }
+        else {
+            requestArgs.clear();
+            responseLabel->setText("Choose correct comparable field");
+        }
+    }
+    else {
+        if (alphabeticFilterCorrect && comparableFilterCorrect) {
+            requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
+            requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
+            backendManager->filteredSelect(requestArgs);
+            dropFilterButton->show();
+        }
+        else {
+            requestArgs.clear();
+            responseLabel->setText("Bad args");
+        }
+    }
+
+}
 
 void MainWidget::initHeaderLayout() {
     addButton = new QPushButton("Add");
@@ -205,7 +291,7 @@ void MainWidget::initTableViewLayout() {
 void MainWidget::initFilterOptionsLayout() {
     filterLabel = new QLabel("Filtering options: ");
     startsWithLetterComboBox = new QComboBox();
-    startsWithLetterLabel = new QLabel("starts with letter:");
+    startsWithLetterLabel = new QLabel("is: ");
     alphabetComboBox = new QComboBox();
     compareComboBox = new QComboBox();
     compareElementsComboBox = new QComboBox();
@@ -238,7 +324,7 @@ void MainWidget::initFilterOptionsLayout() {
     hAlphabeticOptionsLayout->addWidget(startsWithLetterLabel);
     hAlphabeticOptionsLayout->addWidget(alphabetComboBox);
     hAlphabeticOptionsLayout->addStretch();
-    //hFilterOptionsLayout->addStretch();
+
     hComparableOptionsLayout->addStretch();
     hComparableOptionsLayout->addWidget(compareComboBox);
     hComparableOptionsLayout->addWidget(compareElementsComboBox);
@@ -268,20 +354,9 @@ void MainWidget::initWidgetVLayout() {
 }
 
 void MainWidget::initConnections() {
-    connect(dropFilterButton, &QPushButton::clicked, this, [&]() {
-        startsWithLetterComboBox->setCurrentIndex(0);
-        alphabetComboBox->setCurrentIndex(0);
-        compareComboBox->setCurrentIndex(0);
-        compareElementsComboBox->setCurrentIndex(0);
-        geqCheckBox->setChecked(false);
-        leqCheckBox->setChecked(false);
-        dropFilterButton->hide();
-        filterButton->show();
-    });
-    connect(filterButton, &QPushButton::clicked, this, [&]() {
-        //filterButton->show();
-        dropFilterButton->show();
-    });
+    connect(compareComboBox, &QComboBox::currentTextChanged, this, &MainWidget::slotUpdateCompareElementsComboBox);
+    connect(dropFilterButton, &QPushButton::clicked, this, &MainWidget::slotClearComparableFields);
+    connect(filterButton, &QPushButton::clicked, this, &MainWidget::slotFilterButtonClicked);
     connect(leqCheckBox, &QCheckBox::stateChanged, this, [&](int state) {
         if (state == Qt::Checked) {
             geqCheckBox->setChecked(false);
@@ -325,6 +400,7 @@ void MainWidget::initConnections() {
     connect(backendManager, &BackendManager::deleteAllRecordingsSuccessful, this, &MainWidget::slotDeleteAllRecordingsSuccessful);
     connect(backendManager, &BackendManager::deleteSelectedRecordingsSuccessful, this, &MainWidget::slotDeleteSelectedRecordingsSuccessful);
     connect(backendManager, &BackendManager::addRecordingSuccessful, this, &MainWidget::slotAddRecordingSuccessful);
+    connect(backendManager, &BackendManager::filteredSelectSuccessful, this, &MainWidget::slotFilterSelectSuccessful);
 }
 
 MainWidget::~MainWidget() {
@@ -350,7 +426,6 @@ MainWidget::~MainWidget() {
     delete geqCheckBox;
     delete leqCheckBox;
 
-    delete addElementDialog;
     delete widgetVLayout;
 }
 
@@ -372,16 +447,7 @@ void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStand
                 }
             }
         }
-
         it.value().second = columnData;
-    }
-}
-
-void fillComboBoxData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QComboBox *compareComboBox, QComboBox *compareElementsComboBox) {
-    if(!compareComboBox->count()) {
-        for(int i = 0; i < compareComboBox->count(); i++) {
-
-        }
     }
 }
 
