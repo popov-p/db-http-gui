@@ -19,7 +19,7 @@ public:
     void getAllRecordings();
     void deleteAllRecordings();
     void deleteSelectedRecordings(const QList<int>& studentIds);
-    void addRecording(std::map<QString, std::variant<QString, int>> dataMap);
+    void addRecording(const std::map<QString, std::variant<QString, int>>& dataMap);
     /*methods to access database fields here*/
     void logout();
 private:

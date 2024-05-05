@@ -42,23 +42,30 @@ private:
     QHBoxLayout *hHeaderLayout;
     QHBoxLayout *hResponseLabelLayout;
     QHBoxLayout *hTableViewLayout;
-    QHBoxLayout *hFilterOptionsLayout;
+    QHBoxLayout *hAlphabeticOptionsLayout;
+    QHBoxLayout *hComparableOptionsLayout;
+    QHBoxLayout *hFilterButtonsLayout;
+    QHBoxLayout *hFilterLabelLayout;
 
     /*database*/
     QStandardItemModel *model;
     QTableView *tableView;
     /*filtering options*/
-    QComboBox *startsWithLetterComboBox;
+    QLabel *filterLabel;
     QLabel *startsWithLetterLabel;
+    QComboBox *startsWithLetterComboBox;
     QComboBox *alphabetComboBox;
 
     QComboBox *compareComboBox;
     QComboBox *compareElementsComboBox;
     QCheckBox *geqCheckBox;
     QCheckBox *leqCheckBox;
-    QMap<QString, QStringList> addCompMap;
-    QStringList totalFields;
+    QPushButton *filterButton;
+    QPushButton *dropFilterButton;
+    QMap<QString, QStringList> alphCompMap;
+    QStringList desiredHeaderOrder;
     int idLogicalIndex = -1;
+    QMap<QString, QPair<int, QList<int>>> compHeaderData;
     BackendManager *backendManager = nullptr;
 
     void initHeaderLayout();
@@ -81,5 +88,5 @@ signals:
     void addButtonClicked();
 };
 
-
+void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStandardItemModel* model);
 #endif // MAINWIDGET_H

@@ -8,7 +8,7 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from typing import List
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import StudentUpdate, FieldsRequest, StudentCreate
+from server.http_server.schemas import FieldsRequest, StudentCreate
 from server.http_server import crud
 import os
 from configparser import ConfigParser
@@ -65,10 +65,7 @@ def get_fields(db: Session = Depends(get_db)):
     alphabetic = ["last_name", "first_name", "patronymic", "group"]
     comparable = ["year", "course"]
 
-    years = [year[0] for year in db.query(Student.year).distinct().all()]
-    courses = [course[0] for course in db.query(Student.course).distinct().all()]
-
-    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable, years=years, courses=courses)
+    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable)
 
 
 # Create student

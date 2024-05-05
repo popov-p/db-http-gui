@@ -35,9 +35,13 @@ void MainWidget::slotDisconnectButtonClicked() {
     geqCheckBox->hide();
     leqCheckBox->hide();
 
-    addCompMap.clear();
+    compHeaderData.clear();
+    alphCompMap.clear();
     compareComboBox->clear();
     startsWithLetterComboBox->clear();
+    filterLabel->hide();
+    dropFilterButton->hide();
+    filterButton->hide();
     model->clear();
 
     emit disconnectButtonClicked();
@@ -66,23 +70,25 @@ void MainWidget::slotLoginSuccessful() {
     geqCheckBox->show();
     leqCheckBox->show();
     responseLabel->clear();
-    totalFields.clear();
+    desiredHeaderOrder.clear();
     model->clear();
 
+    filterLabel->show();
+    filterButton->show();
     backendManager->getHeaders();
 }
 
 void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapResponse) {
     //qDebug() << "slotGetFieldsSuccessful";
-    totalFields = fieldsMapResponse["total"];
-    addCompMap.insert("comparable", fieldsMapResponse["comparable"]);
-    addCompMap.insert("alphabetic", fieldsMapResponse["alphabetic"]);
+    desiredHeaderOrder = fieldsMapResponse["total"];
+    alphCompMap.insert("comparable", fieldsMapResponse["comparable"]);
+    alphCompMap.insert("alphabetic", fieldsMapResponse["alphabetic"]);
 
-    compareComboBox->addItems(addCompMap["comparable"]);
-    startsWithLetterComboBox->addItems(addCompMap["alphabetic"]);
+    compareComboBox->addItems(QStringList("-") << alphCompMap["comparable"]);
+    startsWithLetterComboBox->addItems(QStringList("-") << alphCompMap["alphabetic"]);
 
-    auto it = addCompMap.constBegin();
-    while (it != addCompMap.constEnd()) {
+    auto it = alphCompMap.constBegin();
+    while (it != alphCompMap.constEnd()) {
         const auto& key = it.key();
         const auto& value = it.value();
         addElementDialog->setInputFields(key, value);
@@ -93,24 +99,32 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
 }
 
 void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows) {
-    //qDebug() << "slotGetAllDbRecordingsSuccessful ---- ";
     idLogicalIndex = currentKeyOrder.indexOf("id");
+    for (const QString& compField : alphCompMap["comparable"]) {
+        compHeaderData[compField].first = currentKeyOrder.indexOf(compField);
+    }
 
     for (const QList<QStandardItem*> &rowData : rows) {
         model->appendRow(rowData);
     }
     model->setHorizontalHeaderLabels(currentKeyOrder);
-    QHeaderView *header = tableView->horizontalHeader();
 
-    for (int i = 0; i < totalFields.size(); ++i) {
-        const QString& columnName = totalFields.at(i);
+    QHeaderView *header = tableView->horizontalHeader();
+    for (int i = 0; i < desiredHeaderOrder.size(); ++i) {
+        const QString& columnName = desiredHeaderOrder.at(i);
         int columnIndex = currentKeyOrder.indexOf(columnName);
         if (columnIndex != -1) {
             header->moveSection(columnIndex, i);
             currentKeyOrder.move(columnIndex, i);
         }
     }
+
     tableView->setColumnHidden(idLogicalIndex, true);
+    fillColumnData(compHeaderData, model);
+
+    //qDebug() << compHeaderData;
+    //qDebug() <<"stop";
+
 }
 
 void MainWidget::slotDeleteAllRecordingsSuccessful(int countDeleted) {
@@ -179,6 +193,8 @@ void MainWidget::initTableViewLayout() {
     hTableViewLayout = new QHBoxLayout();
 
     tableView->setModel(model);
+    tableView->setFocusPolicy(Qt::NoFocus);
+    tableView->setEditTriggers(QAbstractItemView::NoEditTriggers);
     tableView->setSelectionBehavior(QAbstractItemView::SelectRows);
     tableView->resizeColumnsToContents();
     tableView->horizontalHeader()->setStretchLastSection(true);
@@ -187,14 +203,24 @@ void MainWidget::initTableViewLayout() {
 }
 
 void MainWidget::initFilterOptionsLayout() {
+    filterLabel = new QLabel("Filtering options: ");
     startsWithLetterComboBox = new QComboBox();
-    startsWithLetterLabel = new QLabel("Starts with letter:");
+    startsWithLetterLabel = new QLabel("starts with letter:");
     alphabetComboBox = new QComboBox();
     compareComboBox = new QComboBox();
     compareElementsComboBox = new QComboBox();
+    compareElementsComboBox->addItem("-");
     leqCheckBox = new QCheckBox("And less");
     geqCheckBox = new QCheckBox("And greater");
-    hFilterOptionsLayout = new QHBoxLayout();
+    filterButton = new QPushButton("Filter");
+    dropFilterButton = new QPushButton("Drop filter");
+    dropFilterButton->hide();
+    hFilterLabelLayout = new QHBoxLayout();
+    hAlphabeticOptionsLayout = new QHBoxLayout();
+    hComparableOptionsLayout = new QHBoxLayout();
+
+
+    hFilterButtonsLayout = new QHBoxLayout();
 
     QStringList alphabet;
     alphabet.append("-");
@@ -202,15 +228,28 @@ void MainWidget::initFilterOptionsLayout() {
         alphabet.append(QString(letter));
     }
     alphabetComboBox->addItems(alphabet);
+    hFilterLabelLayout->addStretch();
+    hFilterLabelLayout->addWidget(filterLabel);
+    hFilterLabelLayout->addStretch();
 
-    hFilterOptionsLayout->addWidget(startsWithLetterComboBox);
-    hFilterOptionsLayout->addWidget(startsWithLetterLabel);
-    hFilterOptionsLayout->addWidget(alphabetComboBox);
-    hFilterOptionsLayout->addStretch();
-    hFilterOptionsLayout->addWidget(compareComboBox);
-    hFilterOptionsLayout->addWidget(compareElementsComboBox);
-    hFilterOptionsLayout->addWidget(leqCheckBox);
-    hFilterOptionsLayout->addWidget(geqCheckBox);
+    hAlphabeticOptionsLayout->addStretch();
+    hAlphabeticOptionsLayout->addWidget(startsWithLetterComboBox);
+
+    hAlphabeticOptionsLayout->addWidget(startsWithLetterLabel);
+    hAlphabeticOptionsLayout->addWidget(alphabetComboBox);
+    hAlphabeticOptionsLayout->addStretch();
+    //hFilterOptionsLayout->addStretch();
+    hComparableOptionsLayout->addStretch();
+    hComparableOptionsLayout->addWidget(compareComboBox);
+    hComparableOptionsLayout->addWidget(compareElementsComboBox);
+    hComparableOptionsLayout->addWidget(leqCheckBox);
+    hComparableOptionsLayout->addWidget(geqCheckBox);
+    hComparableOptionsLayout->addStretch();
+
+    hFilterButtonsLayout->addStretch();
+    hFilterButtonsLayout->addWidget(filterButton);
+    hFilterButtonsLayout->addWidget(dropFilterButton);
+    hFilterButtonsLayout->addStretch();
 }
 
 
@@ -220,18 +259,46 @@ void MainWidget::initWidgetVLayout() {
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hResponseLabelLayout);
     widgetVLayout->addLayout(hTableViewLayout);
-    widgetVLayout->addLayout(hFilterOptionsLayout);
+    widgetVLayout->addLayout(hFilterLabelLayout);
+    widgetVLayout->addLayout(hAlphabeticOptionsLayout);
+    widgetVLayout->addLayout(hComparableOptionsLayout);
+    widgetVLayout->addLayout(hFilterButtonsLayout);
     widgetVLayout->addStretch();
     setLayout(widgetVLayout);
 }
 
 void MainWidget::initConnections() {
-    QObject::connect(responseLabel, &QLineEdit::textChanged, this, [=]() {
+    connect(dropFilterButton, &QPushButton::clicked, this, [&]() {
+        startsWithLetterComboBox->setCurrentIndex(0);
+        alphabetComboBox->setCurrentIndex(0);
+        compareComboBox->setCurrentIndex(0);
+        compareElementsComboBox->setCurrentIndex(0);
+        geqCheckBox->setChecked(false);
+        leqCheckBox->setChecked(false);
+        dropFilterButton->hide();
+        filterButton->show();
+    });
+    connect(filterButton, &QPushButton::clicked, this, [&]() {
+        //filterButton->show();
+        dropFilterButton->show();
+    });
+    connect(leqCheckBox, &QCheckBox::stateChanged, this, [&](int state) {
+        if (state == Qt::Checked) {
+            geqCheckBox->setChecked(false);
+        }
+    });
+    connect(geqCheckBox, &QCheckBox::stateChanged, this, [&](int state) {
+        if (state == Qt::Checked) {
+            leqCheckBox->setChecked(false);
+        }
+    });
+    connect(responseLabel, &QLineEdit::textChanged, this, [&]() {
         responseLabelTimer->start(500);
     });
-    QObject::connect(responseLabelTimer, &QTimer::timeout, this, [=]() {
+    connect(responseLabelTimer, &QTimer::timeout, this, [&]() {
         responseLabel->clear();
     });
+
     connect(addButton, &QPushButton::clicked, this, &MainWidget::slotAddButtonClicked);
     connect(disconnectButton, &QPushButton::clicked, this, &MainWidget::slotDisconnectButtonClicked);
     connect(deleteSelectedButton, &QPushButton::clicked, this, [this] () {
@@ -284,10 +351,39 @@ MainWidget::~MainWidget() {
     delete leqCheckBox;
 
     delete addElementDialog;
-    delete hFilterOptionsLayout;
     delete widgetVLayout;
 }
 
+
+void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStandardItemModel* model) {
+    for (auto it = compHeaderIds.begin(); it != compHeaderIds.end(); ++it) {
+        const QString& fieldName = it.key();
+        int columnKey = it.value().first;
+
+        QList<int> columnData;
+        for (int row = 0; row < model->rowCount(); ++row) {
+            QModelIndex index = model->index(row, columnKey);
+            QStandardItem* item = model->itemFromIndex(index);
+            if (item) {
+                bool ok;
+                int columnNumber = item->text().toInt(&ok);
+                if (ok) {
+                    columnData.append(columnNumber);
+                }
+            }
+        }
+
+        it.value().second = columnData;
+    }
+}
+
+void fillComboBoxData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QComboBox *compareComboBox, QComboBox *compareElementsComboBox) {
+    if(!compareComboBox->count()) {
+        for(int i = 0; i < compareComboBox->count(); i++) {
+
+        }
+    }
+}
 
 
 

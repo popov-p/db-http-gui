@@ -63,7 +63,7 @@ void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
     networkManager->sendCustomRequest(request, "DELETE", data);
 }
 
-void BackendManager::addRecording(std::map<QString, std::variant<QString, int>> dataMap) {
+void BackendManager::addRecording(const std::map<QString, std::variant<QString, int>>& dataMap) {
     QNetworkRequest request(QUrl("http://127.0.0.1:8000/add"));
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
