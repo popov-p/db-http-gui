@@ -244,10 +244,6 @@ void BackendManager::filteredSelect(const std::map<QString, std::variant<QString
         }
     });
 }
-// QByteArray BackendManager::formatJsonRequest(const std::map<QString, std::variant<QString, int>>& requestArgs) {
-
-//     return jsonData;
-// }
 
 BackendManager::~BackendManager() {
     delete networkManager;

@@ -1,12 +1,12 @@
 from sqlalchemy import create_engine, Column, Integer, String, LargeBinary
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base
 from sqlalchemy import select
 
 Base = declarative_base()
 
 
 class Student(Base):
-    __tablename__ = 'students'
+    __tablename__ = 'students-ubuntu'
 
     id = Column(Integer, primary_key=True)
     last_name = Column(String)
@@ -18,8 +18,8 @@ class Student(Base):
     photo = Column(String)
     
     def __repr__(self):
-        return f"<Student(id={self.id}, full_name='{self.full_name}', year={self.year}, " \
-               f"photo='{self.photo}', course={self.course}, group='{self.group}')>"
+        return f"<Student(id={self.id}, last_name='{self.last_name}', first_name='{self.first_name}', patronymic='{self.patronymic}', " \
+               f"group='{self.group}', year={self.year}, course={self.course}, photo='{self.photo}',)>"
 
 engine = create_engine('postgresql://postgres@/postgres')
 

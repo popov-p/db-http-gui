@@ -195,6 +195,16 @@ void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds) {
             tableView->hideRow(row);
         }
     }
+    for (const auto& id : studentIds) {
+        for (int row = 0; row < rowCount; ++row) {
+            QModelIndex index = model->index(row, idLogicalIndex);
+            int rowId = model->data(index).toInt();
+            if (rowId == id) {
+                tableView->showRow(row);
+                break;
+            }
+        }
+    }
 }
 
 void MainWidget::slotFilterButtonClicked() {
@@ -206,6 +216,8 @@ void MainWidget::slotFilterButtonClicked() {
     if (!alphabereticFilterActive && !comparableFilterActive) {
         responseLabel->setText("Nothing to filter!");
         dropFilterButton->hide();
+        model->clear();
+        backendManager->getAllRecordings();
     }
     else if (alphabereticFilterActive && !comparableFilterActive) {
         if (alphabeticFilterCorrect) {
@@ -221,6 +233,8 @@ void MainWidget::slotFilterButtonClicked() {
     else if (!alphabereticFilterActive && comparableFilterActive) {
         if (comparableFilterCorrect) {
             requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
+            requestArgs["and_less"] = leqCheckBox->isChecked();
+            requestArgs["and_greater"] = geqCheckBox->isChecked();
             backendManager->filteredSelect(requestArgs);
             dropFilterButton->show();
         }
@@ -233,6 +247,8 @@ void MainWidget::slotFilterButtonClicked() {
         if (alphabeticFilterCorrect && comparableFilterCorrect) {
             requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
             requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
+            requestArgs["and_less"] = leqCheckBox->isChecked();
+            requestArgs["and_greater"] = geqCheckBox->isChecked();
             backendManager->filteredSelect(requestArgs);
             dropFilterButton->show();
         }
@@ -370,7 +386,11 @@ void MainWidget::initConnections() {
         }
     });
     connect(compareComboBox, &QComboBox::currentTextChanged, this, &MainWidget::slotUpdateCompareElementsComboBox);
-    connect(dropFilterButton, &QPushButton::clicked, this, &MainWidget::slotClearComparableFields);
+    connect(dropFilterButton, &QPushButton::clicked, this, [this](){
+        slotClearComparableFields();
+        model->clear();
+        backendManager->getAllRecordings();
+    });
     connect(filterButton, &QPushButton::clicked, this, &MainWidget::slotFilterButtonClicked);
     connect(leqCheckBox, &QCheckBox::stateChanged, this, [&](int state) {
         if (state == Qt::Checked) {

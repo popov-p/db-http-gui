@@ -26,7 +26,6 @@ public:
 private:
     QString baseUrl;
     QNetworkAccessManager *networkManager;
-    //QByteArray formatJsonRequest(const std::map<QString, std::variant<QString, int>>& requestArgs);
 signals:
     void loginSuccessful();
     void loginFailed(QNetworkReply::NetworkError errcode);

@@ -1,14 +1,14 @@
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi import Depends, Response
 from sqlalchemy.orm import sessionmaker
 from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
-from typing import List
+from typing import List, Optional
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import FieldsRequest, StudentCreate, Filter
+from server.http_server.schemas import FieldsRequest, StudentCreate
 from server.http_server import crud
 import os
 from configparser import ConfigParser
@@ -93,8 +93,29 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
 def delete_all_students(db: Session = Depends(get_db)):
     return crud.delete_all_students(db=db)
 
-def filter_by(data: schemas.Filter, db: Session = Depends(get_db)):
-    filter_dict = data.dict()
-    filters = {key: value for key, value in filter_dict.items() if value is not None}
-    return crud.filter(db=db, **filters)
-   
+@app.get("/filter", response_model=List[int])
+def filter_by(
+    last_name: Optional[str] = Query(None, description="First letter of last_name"),
+    first_name: Optional[str] = Query(None, description="First letter of first_name"),
+    patronymic: Optional[str] = Query(None, description="First letter of patronymic"),
+    group: Optional[str] = Query(None, description="First letter of group"),
+    year: Optional[int] = Query(None, description="Student`s birth year"),
+    course: Optional[int] = Query(None, description="Student`s course"),
+    and_less:Optional[bool] = Query(None, description="Show less than"),
+    and_greater:Optional[bool] = Query(None, description="Show greater than"),
+    db: Session = Depends(get_db)
+):
+    params = locals()
+    params.pop("db")
+
+    filtering_params = {}
+    for key, value in params.items():
+        if value is not None:
+            if(type(value) == str):
+                filtering_params["str"] = (key, value)
+            elif(type(value) == int):
+                filtering_params["int"] = (key, value)
+            elif(type(value) == bool):
+                if value:
+                    filtering_params["bool"] = (key, value)
+    return crud.filter(db=db, **filtering_params)

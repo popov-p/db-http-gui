@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional, List
+from fastapi import Query
 
 
 class Student(BaseModel):
@@ -25,13 +26,3 @@ class FieldsRequest(BaseModel):
     total:List[str]
     alphabetic: List[str]
     comparable: List[str]
-
-class Filter(BaseModel):
-    last_name: Optional[str]
-    first_name: Optional[str]
-    patronymic: Optional[str]
-    group: Optional[str]
-    year: Optional[int]
-    course: Optional[int]
-    and_less: Optional[bool]
-    and_greater: Optional[bool]

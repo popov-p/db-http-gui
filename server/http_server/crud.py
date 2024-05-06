@@ -24,14 +24,24 @@ def delete_all_students(db: Session):
     db.commit()
     return num_deleted
 
-def filter(db: Session, keyfields: schemas.Filter):
+def filter(db:Session, **kwargs):
+    print(kwargs)
     query = db.query(models.Student)
-    name_filters = [
-        getattr(models.Student, field) == getattr(filter_params, field)
-        for field in ["last_name", "first_name", "patronymic"]
-        if getattr(filter_params, field)
-    ]
-    if name_filters:
-        query = query.filter(and_(*name_filters))
-
-
+    for key, value in kwargs.items():
+        if key == "str":
+            query = query.filter(getattr(models.Student, value[0]).startswith(value[1]))
+        elif key == "int":
+            comp_arg = kwargs.get("bool")
+            if comp_arg:
+                if comp_arg[0] == "and_less":
+                    print("--wtf--0", kwargs.get("int")[0], "--wtf--1", kwargs.get("int")[1])
+                    query = query.filter(getattr(models.Student, 
+                                                 kwargs.get("int")[0]) <= int(kwargs.get("int")[1]))
+                if comp_arg[0] == "and_greater":
+                    print("--wtf--0", kwargs.get("int")[0], "--wtf--1", kwargs.get("int")[1])
+                    query = query.filter(getattr(models.Student, 
+                                                 kwargs.get("int")[0]) >= int(kwargs.get("int")[1]))
+            else:
+                query = query.filter(getattr(models.Student, value[0]) == value[1])
+    #print(query.all())
+    return [student.id for student in query.all()]
