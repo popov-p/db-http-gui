@@ -33,4 +33,5 @@ class Filter(BaseModel):
     group: Optional[str]
     year: Optional[int]
     course: Optional[int]
-    photo: Optional[str]
+    and_less: Optional[bool]
+    and_greater: Optional[bool]

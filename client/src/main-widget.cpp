@@ -70,12 +70,18 @@ void MainWidget::slotUpdateCompareElementsComboBox(const QString& changedField) 
     compareElementsComboBox->clear();
     compareElementsComboBox->addItem("-");
     if(changedField != "-") {
+        leqCheckBox->show();
+        geqCheckBox->show();
         const QList<int>& intList = compHeaderData[changedField].second;
         for (const int & value : intList) {
             compareElementsComboBox->addItem(QString::number(value));
         }
     }
     else {
+        leqCheckBox->hide();
+        geqCheckBox->hide();
+        leqCheckBox->setChecked(false);
+        geqCheckBox->setChecked(false);
         compareElementsComboBox->clear();
     }
 }
@@ -291,13 +297,15 @@ void MainWidget::initTableViewLayout() {
 void MainWidget::initFilterOptionsLayout() {
     filterLabel = new QLabel("Filtering options: ");
     startsWithLetterComboBox = new QComboBox();
-    startsWithLetterLabel = new QLabel("is: ");
+    startsWithLetterLabel = new QLabel("`s first letter: ");
     alphabetComboBox = new QComboBox();
     compareComboBox = new QComboBox();
     compareElementsComboBox = new QComboBox();
     compareElementsComboBox->addItem("-");
     leqCheckBox = new QCheckBox("And less");
     geqCheckBox = new QCheckBox("And greater");
+    leqCheckBox->hide();
+    geqCheckBox->hide();
     filterButton = new QPushButton("Filter");
     dropFilterButton = new QPushButton("Drop filter");
     dropFilterButton->hide();
@@ -308,12 +316,6 @@ void MainWidget::initFilterOptionsLayout() {
 
     hFilterButtonsLayout = new QHBoxLayout();
 
-    QStringList alphabet;
-    alphabet.append("-");
-    for (char letter = 'A'; letter <= 'Z'; ++letter) {
-        alphabet.append(QString(letter));
-    }
-    alphabetComboBox->addItems(alphabet);
     hFilterLabelLayout->addStretch();
     hFilterLabelLayout->addWidget(filterLabel);
     hFilterLabelLayout->addStretch();
@@ -354,6 +356,19 @@ void MainWidget::initWidgetVLayout() {
 }
 
 void MainWidget::initConnections() {
+    connect(startsWithLetterComboBox, &QComboBox::currentTextChanged, this, [this]() {
+        if(startsWithLetterComboBox->currentText() == "-") {
+            alphabetComboBox->clear();
+        }
+        else {
+            QStringList alphabet;
+            alphabet.append("-");
+            for (char letter = 'A'; letter <= 'Z'; ++letter) {
+                alphabet.append(QString(letter));
+            }
+            alphabetComboBox->addItems(alphabet);
+        }
+    });
     connect(compareComboBox, &QComboBox::currentTextChanged, this, &MainWidget::slotUpdateCompareElementsComboBox);
     connect(dropFilterButton, &QPushButton::clicked, this, &MainWidget::slotClearComparableFields);
     connect(filterButton, &QPushButton::clicked, this, &MainWidget::slotFilterButtonClicked);

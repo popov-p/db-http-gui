@@ -26,17 +26,12 @@ def delete_all_students(db: Session):
 
 def filter(db: Session, keyfields: schemas.Filter):
     query = db.query(models.Student)
-
-    filters = [
-        getattr(models.Student, field) == value
-        for field, value in keyfields.dict().items()
-        if value is not None
+    name_filters = [
+        getattr(models.Student, field) == getattr(filter_params, field)
+        for field in ["last_name", "first_name", "patronymic"]
+        if getattr(filter_params, field)
     ]
+    if name_filters:
+        query = query.filter(and_(*name_filters))
 
-    if filters:
-        query = query.filter(and_(*filters))
-
-    student_ids = [result[0] for result in results]
-    
-    return student_ids
 

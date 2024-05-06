@@ -93,6 +93,8 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
 def delete_all_students(db: Session = Depends(get_db)):
     return crud.delete_all_students(db=db)
 
-@app.get("filter", response_model=List[int])
 def filter_by(data: schemas.Filter, db: Session = Depends(get_db)):
-    return crud.filter(db=db, keyfields=data)
+    filter_dict = data.dict()
+    filters = {key: value for key, value in filter_dict.items() if value is not None}
+    return crud.filter(db=db, **filters)
+   

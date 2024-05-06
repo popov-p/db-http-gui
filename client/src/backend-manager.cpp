@@ -3,6 +3,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QStandardItemModel>
+#include <QUrlQuery>
 
 void multiarg(QByteArray& ba) {};
 
@@ -171,7 +172,22 @@ void BackendManager::addRecording(const std::map<QString, std::variant<QString, 
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
 
-    QByteArray jsonData = formatJsonRequest(dataMap);
+    QJsonObject jsonObject;
+    for (const auto& pair : dataMap) {
+        QString key = pair.first;
+        std::variant<QString, int> value = pair.second;
+
+        if (std::holds_alternative<QString>(value)) {
+            QString stringValue = std::get<QString>(value);
+            jsonObject[key] = QJsonValue(stringValue);
+        }
+        else if (std::holds_alternative<int>(value)) {
+            int intValue = std::get<int>(value);
+            jsonObject[key] = QJsonValue(intValue);
+        }
+    }
+
+    QByteArray jsonData = QJsonDocument(jsonObject).toJson();
 
     QNetworkReply *reply = networkManager->sendCustomRequest(request, "POST", jsonData);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
@@ -185,13 +201,30 @@ void BackendManager::addRecording(const std::map<QString, std::variant<QString, 
 }
 
 void BackendManager::filteredSelect(const std::map<QString, std::variant<QString, int>>& requestArgs) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/filter"));
+    QUrl url("http://127.0.0.1:8000/filter");
+    QUrlQuery query;
+
+    for (const auto& pair : requestArgs) {
+        QString key = pair.first;
+        std::variant<QString, int> value = pair.second;
+
+        if (std::holds_alternative<QString>(value)) {
+            QString stringValue = std::get<QString>(value);
+            query.addQueryItem(key, stringValue);
+        }
+        else if (std::holds_alternative<int>(value)) {
+            int intValue = std::get<int>(value);
+            query.addQueryItem(key, QString::number(intValue));
+        }
+    }
+
+    url.setQuery(query);
+
+    QNetworkRequest request(url);
     QByteArray credentials;
     multiarg(credentials, "pavel", ":", "popov");
 
-    QByteArray jsonData = formatJsonRequest(requestArgs);
-
-    QNetworkReply *reply = networkManager->sendCustomRequest(request, "POST", jsonData);
+    QNetworkReply *reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
         if (reply->error() == QNetworkReply::NoError) {
             QByteArray responseData = reply->readAll();
@@ -211,25 +244,10 @@ void BackendManager::filteredSelect(const std::map<QString, std::variant<QString
         }
     });
 }
-QByteArray BackendManager::formatJsonRequest(const std::map<QString, std::variant<QString, int>>& requestArgs) {
-    QJsonObject jsonObject;
-    for (const auto& pair : requestArgs) {
-        QString key = pair.first;
-        std::variant<QString, int> value = pair.second;
+// QByteArray BackendManager::formatJsonRequest(const std::map<QString, std::variant<QString, int>>& requestArgs) {
 
-        if (std::holds_alternative<QString>(value)) {
-            QString stringValue = std::get<QString>(value);
-            jsonObject[key] = QJsonValue(stringValue);
-        }
-        else if (std::holds_alternative<int>(value)) {
-            int intValue = std::get<int>(value);
-            jsonObject[key] = QJsonValue(intValue);
-        }
-    }
-
-    QByteArray jsonData = QJsonDocument(jsonObject).toJson();
-    return jsonData;
-}
+//     return jsonData;
+// }
 
 BackendManager::~BackendManager() {
     delete networkManager;
