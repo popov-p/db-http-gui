@@ -29,19 +29,17 @@ def filter(db:Session, **kwargs):
     query = db.query(models.Student)
     for key, value in kwargs.items():
         if key == "str":
-            query = query.filter(getattr(models.Student, value[0]).startswith(value[1]))
+            query = query.filter(getattr(models.Student, value[0]).ilike(f"{value[1]}%"))
         elif key == "int":
             comp_arg = kwargs.get("bool")
             if comp_arg:
+                comp_field = kwargs.get("int")
                 if comp_arg[0] == "and_less":
-                    print("--wtf--0", kwargs.get("int")[0], "--wtf--1", kwargs.get("int")[1])
                     query = query.filter(getattr(models.Student, 
-                                                 kwargs.get("int")[0]) <= int(kwargs.get("int")[1]))
+                                                 comp_field[0]) <= comp_field[1])
                 if comp_arg[0] == "and_greater":
-                    print("--wtf--0", kwargs.get("int")[0], "--wtf--1", kwargs.get("int")[1])
                     query = query.filter(getattr(models.Student, 
-                                                 kwargs.get("int")[0]) >= int(kwargs.get("int")[1]))
+                                                 comp_field[0]) >= comp_field[1])
             else:
                 query = query.filter(getattr(models.Student, value[0]) == value[1])
-    #print(query.all())
     return [student.id for student in query.all()]

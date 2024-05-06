@@ -22,7 +22,7 @@ public slots:
 private:
     QVBoxLayout *widgetVLayout;
     QPushButton *connectButton;
-    QLabel *connectStatus;
+    QLineEdit *connectStatus;
     QHBoxLayout *hConnectLayout;
     QHBoxLayout *hConnectStatusLayout;
     BackendManager *backendManager = nullptr;

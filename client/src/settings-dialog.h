@@ -43,15 +43,18 @@ public slots:
 private:
     QPushButton *okDialogButton;
     QPushButton *cancelDialogButton;
+    QLabel *ipLabel;
     QLabel *usernameLabel;
     QLabel *passwordLabel;
     QLabel *logdirLabel;
     QLabel *logLabel;
     QLabel *settingsStatus;
+    QLineEdit *ipLineEdit;
     QLineEdit *usernameLineEdit;
     QLineEdit *passwordLineEdit;
     QLineEdit *logdirLineEdit;
     QComboBox *logComboBox;
+    QHBoxLayout *hIpLayout;
     QHBoxLayout *hUsernameLayout;
     QHBoxLayout *hPasswordLayout;
     QHBoxLayout *hLogDirLayout;
@@ -61,7 +64,7 @@ private:
     QVBoxLayout *verticalDialogLayout;
     NoSpcValidator *credentialsValidator;
     BackendManager *backendManager = nullptr;
-
+    void initHostLayout();
     void initUsernameLayout();
     void initPasswordLayout();
     void initLogDirLayout();

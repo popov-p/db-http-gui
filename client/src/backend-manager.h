@@ -13,10 +13,12 @@ class BackendManager : public QObject {
 public:
     explicit BackendManager(QObject *parent = nullptr);
     ~BackendManager();
-    void setBaseURL(QString url);
-    void login(QString username, QString password);
     void getHeaders();
     void getAllRecordings();
+    QString getActiveUser();
+    void setBaseURL(QString url);
+
+    void login(QString username, QString password);
     void deleteAllRecordings();
     void deleteSelectedRecordings(const QList<int>& studentIds);
     void addRecording(const std::map<QString, std::variant<QString, int>>& dataMap);
@@ -25,7 +27,10 @@ public:
     void logout();
 private:
     QString baseUrl;
+    QByteArray activeCredentials;
+    QString activeUser;
     QNetworkAccessManager *networkManager;
+    /*credentials*/
 signals:
     void loginSuccessful();
     void loginFailed(QNetworkReply::NetworkError errcode);

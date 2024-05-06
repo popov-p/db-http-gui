@@ -65,6 +65,7 @@ private:
     QMap<QString, QStringList> alphCompMap;
     QStringList desiredHeaderOrder;
     int idLogicalIndex = -1;
+    int photoLogicalIndex = -1;
     QMap<QString, QPair<int, QList<int>>> compHeaderData;
     BackendManager *backendManager = nullptr;
 

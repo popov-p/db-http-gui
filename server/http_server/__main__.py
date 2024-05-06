@@ -69,16 +69,16 @@ def get_fields(db: Session = Depends(get_db)):
 
 
 # Create student
-@app.post("/add", response_model=schemas.StudentCreate)
+@app.post("/add", response_model=schemas.StudentCreate, dependencies=[Depends(auth)])
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db=db, student=student)
 
-@app.get("/students", response_model=List[schemas.Student])
+@app.get("/students", response_model=List[schemas.Student], dependencies=[Depends(auth)])
 def get_all_students(db: Session = Depends(get_db)):
     return crud.get_all_students(db)
 
 # Delete selected students ID 
-@app.delete("/delete-selected")
+@app.delete("/delete-selected", dependencies=[Depends(auth)])
 def delete_student(data: List[int], db: Session = Depends(get_db)):
     if data is not None:
         for delete_id in data:
@@ -89,11 +89,11 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
     return Response(status_code=200)
 
 # Delete all students 
-@app.delete("/delete-all", response_model=int)
+@app.delete("/delete-all", response_model=int, dependencies=[Depends(auth)])
 def delete_all_students(db: Session = Depends(get_db)):
     return crud.delete_all_students(db=db)
 
-@app.get("/filter", response_model=List[int])
+@app.get("/filter", response_model=List[int], dependencies=[Depends(auth)])
 def filter_by(
     last_name: Optional[str] = Query(None, description="First letter of last_name"),
     first_name: Optional[str] = Query(None, description="First letter of first_name"),

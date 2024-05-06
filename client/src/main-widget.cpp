@@ -40,8 +40,10 @@ void MainWidget::slotDisconnectButtonClicked() {
     filterLabel->hide();
     dropFilterButton->hide();
     filterButton->hide();
+    geqCheckBox->hide();
+    leqCheckBox->hide();
     model->clear();
-
+    backendManager->logout();
     emit disconnectButtonClicked();
 }
 
@@ -88,6 +90,7 @@ void MainWidget::slotUpdateCompareElementsComboBox(const QString& changedField) 
 
 void MainWidget::slotLoginSuccessful() {
     LOG(INFO) << "Qt: MainWidget handled slot connect button clicked";
+    usernameLabel->setText(backendManager->getActiveUser());
     disconnectButton->show();
     addButton->show();
     deleteSelectedButton->show();
@@ -108,11 +111,11 @@ void MainWidget::slotLoginSuccessful() {
 
     filterLabel->show();
     filterButton->show();
+
     backendManager->getHeaders();
 }
 
 void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapResponse) {
-    //qDebug() << "slotGetFieldsSuccessful";
     desiredHeaderOrder = fieldsMapResponse["total"];
     alphCompMap.insert("comparable", fieldsMapResponse["comparable"]);
     alphCompMap.insert("alphabetic", fieldsMapResponse["alphabetic"]);
@@ -125,12 +128,23 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
 
 void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows) {
     idLogicalIndex = currentKeyOrder.indexOf("id");
+    photoLogicalIndex = currentKeyOrder.indexOf("photo");
     compHeaderData.clear();
     for (const QString& compField : alphCompMap["comparable"]) {
         compHeaderData[compField].first = currentKeyOrder.indexOf(compField);
     }
-
+    //QSize newSize(100, 50);
+    //.scaled(newSize, Qt::KeepAspectRatio);
     for (const QList<QStandardItem*> &rowData : rows) {
+        if (photoLogicalIndex >= 0 && photoLogicalIndex < rowData.size()) {
+            QStandardItem *photoItem = rowData.at(photoLogicalIndex);
+            QString base64String = photoItem->text();
+            photoItem->setText("");
+            QByteArray imageData = QByteArray::fromBase64(base64String.toUtf8());
+            QImage image = QImage::fromData(imageData);
+            QPixmap pixmap = QPixmap::fromImage(image);
+            photoItem->setData(pixmap, Qt::DecorationRole);
+        }
         model->appendRow(rowData);
     }
     model->setHorizontalHeaderLabels(currentKeyOrder);
@@ -377,6 +391,7 @@ void MainWidget::initConnections() {
             alphabetComboBox->clear();
         }
         else {
+            alphabetComboBox->clear();
             QStringList alphabet;
             alphabet.append("-");
             for (char letter = 'A'; letter <= 'Z'; ++letter) {
@@ -403,7 +418,7 @@ void MainWidget::initConnections() {
         }
     });
     connect(responseLabel, &QLineEdit::textChanged, this, [&]() {
-        responseLabelTimer->start(500);
+        responseLabelTimer->start(1000);
     });
     connect(responseLabelTimer, &QTimer::timeout, this, [&]() {
         responseLabel->clear();
@@ -478,7 +493,9 @@ void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStand
                 bool ok;
                 int columnNumber = item->text().toInt(&ok);
                 if (ok) {
-                    columnData.append(columnNumber);
+                    if (!columnData.contains(columnNumber)) {
+                        columnData.append(columnNumber);
+                    }
                 }
             }
         }

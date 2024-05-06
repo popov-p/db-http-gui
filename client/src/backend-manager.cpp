@@ -10,17 +10,30 @@ void multiarg(QByteArray& ba) {};
 BackendManager::BackendManager(QObject *parent) : QObject(parent) {
     networkManager = new QNetworkAccessManager();
 }
+void BackendManager::setBaseURL(QString url) {
+    baseUrl = url;
+}
 
+QString BackendManager::getActiveUser() {
+    return activeUser;
+}
+
+void BackendManager::logout() {
+    activeCredentials.clear();
+    activeUser.clear();
+    baseUrl.clear();
+}
 void BackendManager::login(QString username, QString password) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/auth"));
+    QNetworkRequest request(QUrl(baseUrl + "/auth"));
     QByteArray credentials;
     multiarg(credentials, username, ":", password);
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
-    //qDebug() << "login";
     QNetworkReply *reply = networkManager->post(request, QByteArray());
-    connect(reply, &QNetworkReply::finished, this, [this, reply] () {
+    connect(reply, &QNetworkReply::finished, this, [this, reply, username, credentials] () {
         if (reply->error() == QNetworkReply::NoError) {
+            activeUser = username;
+            activeCredentials = credentials;
             emit loginSuccessful();
         } else {
             emit loginFailed(reply->error());
@@ -30,12 +43,9 @@ void BackendManager::login(QString username, QString password) {
 }
 
 void BackendManager::getHeaders() {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/fields"));
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
-    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    QNetworkRequest request(QUrl(baseUrl + "/fields"));
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
     request.setTransferTimeout(500);
-    //qDebug() << "login";
     QNetworkReply *reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
 if (reply->error() == QNetworkReply::NoError) {
@@ -68,10 +78,8 @@ if (reply->error() == QNetworkReply::NoError) {
 }
 
 void BackendManager::getAllRecordings() {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/students"));
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
-    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    QNetworkRequest request(QUrl(baseUrl + "/students"));
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
     request.setTransferTimeout(500);
     QNetworkReply *reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
@@ -107,7 +115,6 @@ void BackendManager::getAllRecordings() {
                 if (!jsonArray.isEmpty() && jsonArray.at(0).isObject()) {
                     QJsonObject firstObject = jsonArray.at(0).toObject();
                     QStringList keys = firstObject.keys();
-                    //qDebug() << "List of keys:" << keys;
                     emit getAllRecordingsSuccessful(keys, rows);
                 }
             }
@@ -122,10 +129,8 @@ void BackendManager::getAllRecordings() {
 }
 
 void BackendManager::deleteAllRecordings() {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/delete-all"));
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
-    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    QNetworkRequest request(QUrl(baseUrl + "/delete-all"));
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
     request.setTransferTimeout(500);
     QNetworkReply *reply = networkManager->deleteResource(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
@@ -146,10 +151,9 @@ void BackendManager::deleteAllRecordings() {
 }
 
 void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/delete-selected"));
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
-    request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
+    QNetworkRequest request(QUrl(baseUrl + "/delete-selected"));
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
+    request.setTransferTimeout(500);
     QJsonArray jsonArray;
     for (int studentId : studentIds) {
         jsonArray.append(studentId);
@@ -168,10 +172,9 @@ void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
 }
 
 void BackendManager::addRecording(const std::map<QString, std::variant<QString, int>>& dataMap) {
-    QNetworkRequest request(QUrl("http://127.0.0.1:8000/add"));
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
-
+    QNetworkRequest request(QUrl(baseUrl + "/add"));
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
+    request.setTransferTimeout(500);
     QJsonObject jsonObject;
     for (const auto& pair : dataMap) {
         QString key = pair.first;
@@ -201,7 +204,7 @@ void BackendManager::addRecording(const std::map<QString, std::variant<QString, 
 }
 
 void BackendManager::filteredSelect(const std::map<QString, std::variant<QString, int>>& requestArgs) {
-    QUrl url("http://127.0.0.1:8000/filter");
+    QUrl url(baseUrl + "/filter");
     QUrlQuery query;
 
     for (const auto& pair : requestArgs) {
@@ -221,8 +224,8 @@ void BackendManager::filteredSelect(const std::map<QString, std::variant<QString
     url.setQuery(query);
 
     QNetworkRequest request(url);
-    QByteArray credentials;
-    multiarg(credentials, "pavel", ":", "popov");
+    request.setRawHeader("Authorization", "Basic " + activeCredentials.toBase64());
+    request.setTransferTimeout(500);
 
     QNetworkReply *reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {

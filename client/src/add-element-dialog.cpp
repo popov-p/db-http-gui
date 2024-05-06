@@ -1,7 +1,7 @@
 #include "add-element-dialog.h"
 #include <QDebug>
 #include <QFileDialog>
-
+#include <QBuffer>
 AddElementDialog::AddElementDialog(BackendManager *backendManager, QWidget *parent) : QDialog(parent), backendManager(backendManager) {
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
@@ -75,7 +75,7 @@ void AddElementDialog::slotOkButtonDone() {
             QString fieldKey = std::get<1>(widgetTuple)->text().remove(": ");
 
             if (lineEdit->text().isEmpty()) {
-                settingsStatus->setText("Only photo field is optional!");
+                settingsStatus->setText("Incorrect Felds!");
                 validation_success = false;
                 dataMap.clear();
             }
@@ -87,7 +87,21 @@ void AddElementDialog::slotOkButtonDone() {
             }
         }
     }
-    dataMap["photo"] = "bytearray or string idk";
+    if(photoPathLineEdit->text().isEmpty()) {
+        validation_success = false;
+        dataMap.clear();
+    }
+    else {
+        QString imagePath = photoPathLineEdit->text();
+        QPixmap pixmap = QPixmap(imagePath).scaled(100, 50, Qt::KeepAspectRatio);
+        QImage image = pixmap.toImage();
+        QByteArray byteArray;
+        QBuffer buffer(&byteArray);
+        buffer.open(QIODevice::WriteOnly);
+        image.save(&buffer, "JPG");
+        QString base64Image = QString::fromLatin1(byteArray.toBase64().data());
+        dataMap["photo"] = base64Image;
+    }
 
     if (validation_success) {
         hide();
@@ -133,7 +147,7 @@ void AddElementDialog::slotDeletePhotoButtonClicked() {
 void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList) {
     if(!fieldsList.empty()) {
         alphabeticValidator = new QRegularExpressionValidator(QRegularExpression("[a-zA-Z\\-]+"), this);
-        comparableValidator = new QIntValidator();
+        comparableValidator = new QIntValidator(1960, 2024);
         for (auto it = fieldsList.begin(); it != fieldsList.end(); ++it) {
             QHBoxLayout *layout = new QHBoxLayout();
             QLabel *label = new QLabel(*it + ": ");

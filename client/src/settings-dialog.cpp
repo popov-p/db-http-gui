@@ -7,6 +7,7 @@ SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) 
     setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
     setWindowFlags(windowFlags() | Qt::CustomizeWindowHint);
     credentialsValidator = new NoSpcValidator();
+    initHostLayout();
     initUsernameLayout();
     initPasswordLayout();
     initLogDirLayout();
@@ -17,6 +18,13 @@ SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) 
     initConnections();
 }
 
+void SettingsDialog::initHostLayout() {
+    ipLabel = new QLabel("ip: ");
+    ipLineEdit = new QLineEdit("http://127.0.0.1:8000");
+    hIpLayout = new QHBoxLayout();
+    hIpLayout->addWidget(ipLabel);
+    hIpLayout->addWidget(ipLineEdit);
+}
 
 
 void SettingsDialog::initUsernameLayout() {
@@ -75,6 +83,7 @@ void SettingsDialog::initSettingsStatusLayout() {
 void SettingsDialog::initVerticalDialogLayout() {
     verticalDialogLayout = new QVBoxLayout();
 
+    verticalDialogLayout->addLayout(hIpLayout);
     verticalDialogLayout->addLayout(hUsernameLayout);
     verticalDialogLayout->addLayout(hPasswordLayout);
     verticalDialogLayout->addLayout(hLogDirLayout);
@@ -90,14 +99,17 @@ void SettingsDialog::initConnections() {
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotCancelButtonClicked);
     connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
-                 usernameLineEdit->clear();
-                 passwordLineEdit->clear();
-                 logdirLineEdit->setText("../log");
-                 logComboBox->setCurrentIndex(0);
-                 settingsStatus->clear();
-                 hide();
-                 qDebug() << "Qt UI: SettingsDialog ok button done";
-                 LOG(INFO) << "Qt UI: SettingsDialog ok button done";
+                ipLineEdit->setText("http://127.0.0.1:8000");
+                usernameLineEdit->clear();
+                passwordLineEdit->clear();
+                logdirLineEdit->setText("../log");
+                logComboBox->setCurrentIndex(0);
+                settingsStatus->clear();
+
+                /*dump cfg ini*/
+                hide();
+                qDebug() << "Qt UI: SettingsDialog ok button done";
+                LOG(INFO) << "Qt UI: SettingsDialog ok button done";
     });
     connect(backendManager, &BackendManager::loginFailed, this, [this] (int errcode) {
         settingsStatus->setText("Auth failed! Errcode: " + QString::number(errcode));
@@ -128,27 +140,11 @@ SettingsDialog::~SettingsDialog() {
 }
 
 void SettingsDialog::slotOkButtonDone() {
-    if(!usernameLineEdit->text().isEmpty() &&
+    if(!ipLineEdit->text().isEmpty() && !usernameLineEdit->text().isEmpty() &&
        !passwordLineEdit->text().isEmpty() && !logdirLineEdit->text().isEmpty()) {
+        backendManager->setBaseURL(ipLineEdit->text().replace(" ", ""));
         backendManager->login(usernameLineEdit->text(),
                               passwordLineEdit->text());
-        // QObject::connect(reply, &QNetworkReply::finished, this, [&, reply](){
-        //     if(reply->error() == QNetworkReply::NoError) {
-        //         LOG(INFO) << reply->readAll().toStdString();
-        //         emit okButtonDone();
-        //     } else if (reply->error() == QNetworkReply::ContentAccessDenied) {
-        //         LOG(ERROR) << reply->errorString().toStdString();
-        //         //networkManager->clearAccessCache();
-        //         settingsStatus->setText("Auth failed");
-        //     }
-        //     else {
-        //         LOG(ERROR) << reply->errorString().toStdString();
-        //         //networkManager->clearAccessCache();
-        //         settingsStatus->setText("Connection error");
-
-        //     }
-        //     reply->deleteLater();
-        // });
         /*TODO: fix this later*/
         //dumpCfgIni(client.get_cfg_path());
         //client.load_cfg();

@@ -21,7 +21,12 @@ void ConnectWidget::initConnectLayout() {
 }
 
 void ConnectWidget::initConnectStatusLayout() {
-    connectStatus = new QLabel();
+    connectStatus = new QLineEdit();
+    connectStatus->setReadOnly(true);
+    connectStatus->setFocusPolicy(Qt::NoFocus);
+    connectStatus->setAlignment(Qt::AlignCenter);
+    connectStatus->setFixedSize(300, 20);
+    connectStatus->hide();
     hConnectStatusLayout = new QHBoxLayout();
 
     hConnectStatusLayout->setAlignment(Qt::AlignCenter);
@@ -46,6 +51,7 @@ void ConnectWidget::initConnections() {
     });
     connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
         connectButton->hide();
+        connectStatus->show();
         connectStatus->setText("Connected!");
     });
 }
@@ -84,5 +90,6 @@ ConnectWidget::~ConnectWidget() {
 void ConnectWidget::slotDisconnectButtonClicked() {
     LOG(INFO) << "Qt: ConnectWidget slot disconnect button clicked";
     connectStatus->clear();
+    connectStatus->hide();
     connectButton->show();
 }
