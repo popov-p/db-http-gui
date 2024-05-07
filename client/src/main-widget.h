@@ -26,7 +26,7 @@ class MainWidget : public QWidget {
     Q_OBJECT
 public:
     MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
-    ~MainWidget();
+    ~MainWidget() = default;
 public slots:
     void slotLoginSuccessful();
 private:

@@ -12,7 +12,7 @@ class BackendManager : public QObject {
     Q_OBJECT
 public:
     explicit BackendManager(QObject *parent = nullptr);
-    ~BackendManager();
+    ~BackendManager() = default;
     void getHeaders();
     void getAllRecordings();
     QString getActiveUser();
@@ -30,22 +30,16 @@ private:
     QByteArray activeCredentials;
     QString activeUser;
     QNetworkAccessManager *networkManager;
-    /*credentials*/
 signals:
     void loginSuccessful();
     void loginFailed(QNetworkReply::NetworkError errcode);
     void getHeadersSuccessful(QMap<QString, QStringList> fields);
-    void getHeadersFailed(QNetworkReply::NetworkError errcode);
     void getAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
-    void getAllRecordingsFailed(QNetworkReply::NetworkError errcode);
     void deleteAllRecordingsSuccessful(int countDeleted);
-    void deleteAllRecordingsFailed(QNetworkReply::NetworkError errcode);
     void deleteSelectedRecordingsSuccessful();
-    void deleteSelectedRecordingsFailed(QNetworkReply::NetworkError errcode);
     void addRecordingSuccessful();
-    void addRecordingFailed(QNetworkReply::NetworkError errcode);
     void filteredSelectSuccessful(QList<int> studentIds);
-    void filteredSelectFailed(QNetworkReply::NetworkError errcode);
+    void requestFailed(QString requestName, QNetworkReply::NetworkError errcode);
 };
 
 void multiarg(QByteArray& ba);

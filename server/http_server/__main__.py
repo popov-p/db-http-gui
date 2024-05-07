@@ -12,30 +12,19 @@ from server.http_server.schemas import FieldsRequest, StudentCreate
 from server.http_server import crud
 import os
 from configparser import ConfigParser
+from passlib.context import CryptContext
 
 config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'cfg.ini')
+
+
 #utils.init_config(config_file_path)
 
 config = ConfigParser()
 
-#login = 'pavel'
-#password = 'popov'
-
-#pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-#hashed_password = pwd_context.hash(password)
-
-#config.add_section('auth')
-#config.set('auth', 'username', login)
-#config.set('auth', 'password', hashed_password)
-
-#with open(config_file_path, 'w') as configfile:
-#    config.write(configfile)
-
-
 config.read(config_file_path)
-username = config.get('auth', 'username')
-user_password = config.get('auth', 'password')
+correct_username = config.get('auth', 'username')
+correct_hashed_password = config.get('auth', 'password')
 security = HTTPBasic()
 
 
@@ -52,16 +41,14 @@ def get_db():
 
 @app.post("/auth")
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
-    correct_username = username
-    correct_password = user_password
-    if credentials.username != correct_username or credentials.password != correct_password:
+    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    if credentials.username != correct_username or not pwd_context.verify(credentials.password, correct_hashed_password):
         raise HTTPException(status_code=403 , detail="Incorrect username or password")
     return {"message": "Welcome, authorized user!"}
 
 @app.get("/fields", response_model=FieldsRequest, dependencies=[Depends(auth)])
 def get_fields(db: Session = Depends(get_db)):
     total = [key for key in Student.__table__.columns.keys()]
-    #total = Student.__table__.columns.keys()
     alphabetic = ["last_name", "first_name", "patronymic", "group"]
     comparable = ["year", "course"]
 

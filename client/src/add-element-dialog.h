@@ -24,7 +24,7 @@ class AddElementDialog : public QDialog {
 public:
     AddElementDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void setInputFields(QString fieldsType, QStringList fieldsList);
-    ~AddElementDialog();
+    ~AddElementDialog() = default;
 public slots:
     void slotOkButtonDone();
     void slotCancelButtonClicked();

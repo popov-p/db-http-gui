@@ -14,11 +14,11 @@ AddElementDialog::AddElementDialog(BackendManager *backendManager, QWidget *pare
 }
 
 void AddElementDialog::initPhotoLayout() {
-    addPhotoButton = new QPushButton("Add");
-    deletePhotoButton = new QPushButton("Cancel");
+    addPhotoButton = new QPushButton("Add", this);
+    deletePhotoButton = new QPushButton("Cancel", this);
     deletePhotoButton->hide();
-    photoLabel = new QLabel("Add photo: ");
-    photoPathLineEdit = new QLineEdit();
+    photoLabel = new QLabel("Add photo: ", this);
+    photoPathLineEdit = new QLineEdit(this);
     hPhotoLoadLayout = new QHBoxLayout();
 
     photoPathLineEdit->setReadOnly(true);
@@ -31,8 +31,8 @@ void AddElementDialog::initPhotoLayout() {
 }
 
 void AddElementDialog::initButtonLayout() {
-    okDialogButton = new QPushButton("Ok");
-    cancelDialogButton = new QPushButton("Cancel");
+    okDialogButton = new QPushButton("Ok", this);
+    cancelDialogButton = new QPushButton("Cancel", this);
     hButtonLayout = new QHBoxLayout();
     hButtonLayout->addWidget(okDialogButton);
     hButtonLayout->addWidget(cancelDialogButton);
@@ -40,14 +40,14 @@ void AddElementDialog::initButtonLayout() {
 
 
 void AddElementDialog::initSettingsStatusLayout() {
-    settingsStatus = new QLabel();
+    settingsStatus = new QLabel(this);
     settingsStatus->setAlignment(Qt::AlignCenter);
     hSettingsStatusLayout = new QHBoxLayout();
     hSettingsStatusLayout->addWidget(settingsStatus);
 }
 
 void AddElementDialog::initVerticalDialogLayout() {
-    verticalDialogLayout = new QVBoxLayout();
+    verticalDialogLayout = new QVBoxLayout(this);
     verticalDialogLayout->addLayout(hPhotoLoadLayout);
     verticalDialogLayout->addLayout(hSettingsStatusLayout);
     verticalDialogLayout->addLayout(hButtonLayout);
@@ -147,11 +147,11 @@ void AddElementDialog::slotDeletePhotoButtonClicked() {
 void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList) {
     if(!fieldsList.empty()) {
         alphabeticValidator = new QRegularExpressionValidator(QRegularExpression("[a-zA-Z\\-]+"), this);
-        comparableValidator = new QIntValidator(1960, 2024);
+        comparableValidator = new QIntValidator(1960, 2024, this);
         for (auto it = fieldsList.begin(); it != fieldsList.end(); ++it) {
-            QHBoxLayout *layout = new QHBoxLayout();
+            QHBoxLayout *layout = new QHBoxLayout(this);
             QLabel *label = new QLabel(*it + ": ");
-            QLineEdit *lineEdit = new QLineEdit();
+            QLineEdit *lineEdit = new QLineEdit(this);
             if (fieldsType == "alphabetic") {
                 lineEdit->setValidator(alphabeticValidator);
             }
@@ -181,14 +181,3 @@ void AddElementDialog::inputFieldsCleanup() {
     }
 }
 
-AddElementDialog::~AddElementDialog() {
-    delete okDialogButton;
-    delete cancelDialogButton;
-    delete settingsStatus;
-    delete hButtonLayout;
-    delete hSettingsStatusLayout;
-    delete verticalDialogLayout;
-    delete addPhotoButton;
-    delete photoLabel;
-    delete photoPathLineEdit;
-}

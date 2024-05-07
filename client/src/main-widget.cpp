@@ -5,7 +5,7 @@
 #include <QJsonObject>
 #include <QDebug>
 
-MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : backendManager(backendManager) {
+MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : QWidget(parent) , backendManager(backendManager) {
     initHeaderLayout();
     initResponseLabelLayout();
     initTableViewLayout();
@@ -133,8 +133,7 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
     for (const QString& compField : alphCompMap["comparable"]) {
         compHeaderData[compField].first = currentKeyOrder.indexOf(compField);
     }
-    //QSize newSize(100, 50);
-    //.scaled(newSize, Qt::KeepAspectRatio);
+
     for (const QList<QStandardItem*> &rowData : rows) {
         if (photoLogicalIndex >= 0 && photoLogicalIndex < rowData.size()) {
             QStandardItem *photoItem = rowData.at(photoLogicalIndex);
@@ -275,11 +274,11 @@ void MainWidget::slotFilterButtonClicked() {
 }
 
 void MainWidget::initHeaderLayout() {
-    addButton = new QPushButton("Add");
-    deleteSelectedButton = new QPushButton("Delete \n selected");
-    deleteAllButton = new QPushButton("Delete all");
-    disconnectButton = new QPushButton("Disconnect");
-    usernameLabel = new QLabel("upd later");
+    addButton = new QPushButton("Add", this);
+    deleteSelectedButton = new QPushButton("Delete \n selected", this);
+    deleteAllButton = new QPushButton("Delete all", this);
+    disconnectButton = new QPushButton("Disconnect", this);
+    usernameLabel = new QLabel("upd later", this);
     hHeaderLayout = new QHBoxLayout();
 
     QList<QPushButton*> buttons = {addButton, deleteSelectedButton,
@@ -297,7 +296,7 @@ void MainWidget::initHeaderLayout() {
 }
 
 void MainWidget::initResponseLabelLayout() {
-    responseLabel = new QLineEdit("response status will be here");
+    responseLabel = new QLineEdit("response status will be here", this);
     responseLabelTimer = new QTimer();
     responseLabel->setReadOnly(true);
     responseLabel->setFocusPolicy(Qt::NoFocus);
@@ -310,8 +309,8 @@ void MainWidget::initResponseLabelLayout() {
 }
 
 void MainWidget::initTableViewLayout() {
-    model = new QStandardItemModel();
-    tableView = new QTableView();
+    model = new QStandardItemModel(this);
+    tableView = new QTableView(this);
     hTableViewLayout = new QHBoxLayout();
 
     tableView->setModel(model);
@@ -325,19 +324,19 @@ void MainWidget::initTableViewLayout() {
 }
 
 void MainWidget::initFilterOptionsLayout() {
-    filterLabel = new QLabel("Filtering options: ");
-    startsWithLetterComboBox = new QComboBox();
-    startsWithLetterLabel = new QLabel("`s first letter: ");
-    alphabetComboBox = new QComboBox();
-    compareComboBox = new QComboBox();
-    compareElementsComboBox = new QComboBox();
+    filterLabel = new QLabel("Filtering options: ", this);
+    startsWithLetterComboBox = new QComboBox(this);
+    startsWithLetterLabel = new QLabel("`s first letter: ", this);
+    alphabetComboBox = new QComboBox(this);
+    compareComboBox = new QComboBox(this);
+    compareElementsComboBox = new QComboBox(this);
     compareElementsComboBox->addItem("-");
-    leqCheckBox = new QCheckBox("And less");
-    geqCheckBox = new QCheckBox("And greater");
+    leqCheckBox = new QCheckBox("And less", this);
+    geqCheckBox = new QCheckBox("And greater", this);
     leqCheckBox->hide();
     geqCheckBox->hide();
-    filterButton = new QPushButton("Filter");
-    dropFilterButton = new QPushButton("Drop filter");
+    filterButton = new QPushButton("Filter", this);
+    dropFilterButton = new QPushButton("Drop filter", this);
     dropFilterButton->hide();
     hFilterLabelLayout = new QHBoxLayout();
     hAlphabeticOptionsLayout = new QHBoxLayout();
@@ -372,7 +371,7 @@ void MainWidget::initFilterOptionsLayout() {
 
 
 void MainWidget::initWidgetVLayout() {
-    widgetVLayout = new QVBoxLayout();
+    widgetVLayout = new QVBoxLayout(this);
     widgetVLayout->addLayout(hHeaderLayout);
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hResponseLabelLayout);
@@ -451,34 +450,10 @@ void MainWidget::initConnections() {
     connect(backendManager, &BackendManager::deleteSelectedRecordingsSuccessful, this, &MainWidget::slotDeleteSelectedRecordingsSuccessful);
     connect(backendManager, &BackendManager::addRecordingSuccessful, this, &MainWidget::slotAddRecordingSuccessful);
     connect(backendManager, &BackendManager::filteredSelectSuccessful, this, &MainWidget::slotFilterSelectSuccessful);
+    connect(backendManager, &BackendManager::requestFailed, this, [this](QString requestName, QNetworkReply::NetworkError errcode){
+        responseLabel->setText(requestName + QString::number(errcode));
+    });
 }
-
-MainWidget::~MainWidget() {
-    delete addButton;
-    delete deleteSelectedButton;
-    delete deleteAllButton;
-    delete disconnectButton;
-    delete usernameLabel;
-    delete responseLabel;
-    delete hHeaderLayout;
-    delete hResponseLabelLayout;
-
-    delete hTableViewLayout;
-    delete model;
-    delete tableView;
-
-    delete startsWithLetterComboBox;
-    delete startsWithLetterLabel;
-    delete alphabetComboBox;
-
-    delete compareComboBox;
-    delete compareElementsComboBox;
-    delete geqCheckBox;
-    delete leqCheckBox;
-
-    delete widgetVLayout;
-}
-
 
 void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStandardItemModel* model) {
     for (auto it = compHeaderIds.begin(); it != compHeaderIds.end(); ++it) {

@@ -13,7 +13,7 @@ ConnectWidget::ConnectWidget(BackendManager *backendManager, QWidget *parent) :
 }
 
 void ConnectWidget::initConnectLayout() {
-    connectButton = new QPushButton("Connect");
+    connectButton = new QPushButton("Connect", this);
     hConnectLayout = new QHBoxLayout();
 
     connectButton->setFixedSize(300, 50);
@@ -21,7 +21,7 @@ void ConnectWidget::initConnectLayout() {
 }
 
 void ConnectWidget::initConnectStatusLayout() {
-    connectStatus = new QLineEdit();
+    connectStatus = new QLineEdit(this);
     connectStatus->setReadOnly(true);
     connectStatus->setFocusPolicy(Qt::NoFocus);
     connectStatus->setAlignment(Qt::AlignCenter);
@@ -34,7 +34,7 @@ void ConnectWidget::initConnectStatusLayout() {
 }
 
 void ConnectWidget::initwidgetVLaoyut() {
-    widgetVLayout = new QVBoxLayout();
+    widgetVLayout = new QVBoxLayout(this);
     widgetVLayout->addStretch();
     widgetVLayout->addLayout(hConnectLayout);
     widgetVLayout->addLayout(hConnectStatusLayout);
@@ -55,38 +55,6 @@ void ConnectWidget::initConnections() {
         connectStatus->setText("Connected!");
     });
 }
-
-
-ConnectWidget::~ConnectWidget() {
-    delete connectButton;
-    delete connectStatus;
-    delete hConnectLayout;
-    delete hConnectStatusLayout;
-    delete widgetVLayout;
-}
-
-//void ConnectWidget::slotOkButtonDone() {
-//    LOG(INFO) << "Qt: ConnectWidget slot ok button clicked (connection success)";
-//    connectButton->hide();
-//    try {
-//        connectStatus->setText("Connected!");
-//        //LOG(INFO) << "Qt: connection with db established";
-//        emit connectionSuccessful();
-//    }
-//    catch(...) { /*TODO: Fix this, connection establishes
-//                         in a different way, so catch(...) is no more required*/
-//        LOG(ERROR) << "Qt: connection to broker failed";
-//        connectStatus->setText("Connection Failed!");
-//        QTimer *timer = new QTimer();
-//        connect(timer, &QTimer::timeout, this, [this, timer]() {
-//            connectStatus->setText("");
-//            connectButton->show();
-//            timer->deleteLater();
-//        });
-//        timer->start(500);
-//    }
-//}
-
 void ConnectWidget::slotDisconnectButtonClicked() {
     LOG(INFO) << "Qt: ConnectWidget slot disconnect button clicked";
     connectStatus->clear();

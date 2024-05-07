@@ -35,8 +35,8 @@ class SettingsDialog : public QDialog {
     Q_OBJECT
 public:
     SettingsDialog(BackendManager *backendManager, QWidget *parent = nullptr);
-    void dumpCfgIni(std::string cfg_path);
-    ~SettingsDialog();
+    void dumpCfgIni();
+    ~SettingsDialog() = default;
 public slots:
     void slotOkButtonDone();
     void slotCancelButtonClicked();

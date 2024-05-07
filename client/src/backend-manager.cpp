@@ -8,7 +8,7 @@
 void multiarg(QByteArray& ba) {};
 
 BackendManager::BackendManager(QObject *parent) : QObject(parent) {
-    networkManager = new QNetworkAccessManager();
+    networkManager = new QNetworkAccessManager(this);
 }
 void BackendManager::setBaseURL(QString url) {
     baseUrl = url;
@@ -48,32 +48,33 @@ void BackendManager::getHeaders() {
     request.setTransferTimeout(500);
     QNetworkReply *reply = networkManager->get(request);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
-if (reply->error() == QNetworkReply::NoError) {
-        QStringList keys = {"total", "alphabetic", "comparable"};
-        QByteArray responseData = reply->readAll();
-        QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
-        if (!jsonResponse.isNull()) {
-            QJsonObject jsonObject = jsonResponse.object();
-            if (jsonObject.contains(keys[0]) && jsonObject.contains(keys[1]) && jsonObject.contains(keys[2])) {
-                QMap<QString, QStringList> fieldsMapResponse;
-                for (const auto & key : keys) {
-                    QJsonArray jsonArray = jsonObject[key].toArray();
-                    QStringList list;
-                    for (const QJsonValue& value : jsonArray) {
-                        list.append(value.toString());
+        if (reply->error() == QNetworkReply::NoError) {
+            QStringList keys = {"total", "alphabetic", "comparable"};
+            QByteArray responseData = reply->readAll();
+            QJsonDocument jsonResponse = QJsonDocument::fromJson(responseData);
+            if (!jsonResponse.isNull()) {
+                QJsonObject jsonObject = jsonResponse.object();
+                if (jsonObject.contains(keys[0]) && jsonObject.contains(keys[1]) && jsonObject.contains(keys[2])) {
+                    QMap<QString, QStringList> fieldsMapResponse;
+                    for (const auto & key : keys) {
+                        QJsonArray jsonArray = jsonObject[key].toArray();
+                        QStringList list;
+                        for (const QJsonValue& value : jsonArray) {
+                            list.append(value.toString());
+                        }
+                        fieldsMapResponse[key] = list;
                     }
-                    fieldsMapResponse[key] = list;
+                    emit getHeadersSuccessful(fieldsMapResponse);
+                } else {
+                    emit requestFailed("getHeaders, ",QNetworkReply::ContentConflictError);
                 }
-                emit getHeadersSuccessful(fieldsMapResponse);
             } else {
-                emit getHeadersFailed(QNetworkReply::ContentConflictError);
+                emit requestFailed("getHeaders, ",QNetworkReply::UnknownContentError);
             }
         } else {
-            emit getHeadersFailed(QNetworkReply::UnknownContentError);
+            emit requestFailed("getHeaders, ",reply->error());
         }
-    } else {
-        emit getHeadersFailed(reply->error());
-    }
+        reply->deleteLater();
     });
 }
 
@@ -107,9 +108,8 @@ void BackendManager::getAllRecordings() {
                             }
                         }
                         rows.append(row);
-                    }
-                    else {
-                        emit getAllRecordingsFailed(QNetworkReply::UnknownContentError);
+                    } else {
+                        emit requestFailed("getAllRecordings, ",QNetworkReply::UnknownContentError);
                     }
                 }
                 if (!jsonArray.isEmpty() && jsonArray.at(0).isObject()) {
@@ -117,14 +117,13 @@ void BackendManager::getAllRecordings() {
                     QStringList keys = firstObject.keys();
                     emit getAllRecordingsSuccessful(keys, rows);
                 }
+            } else {
+                emit requestFailed("getAllRecordings, ", QNetworkReply::ContentConflictError);
             }
-            else {
-                emit getAllRecordingsFailed(QNetworkReply::ContentConflictError);
-            }
+        } else {
+            emit requestFailed("getAllRecordings, ", reply->error());
         }
-        else {
-            emit getAllRecordingsFailed(reply->error());
-        }
+        reply->deleteLater();
     });
 }
 
@@ -142,11 +141,12 @@ void BackendManager::deleteAllRecordings() {
             if (ok) {
                 emit deleteAllRecordingsSuccessful(deletedCount);
             } else {
-                emit deleteAllRecordingsFailed(QNetworkReply::ContentConflictError);
+                emit requestFailed("deleteAllRecordings, ", QNetworkReply::ContentConflictError);
             }
         } else {
-            emit deleteAllRecordingsFailed(reply->error());
+            emit requestFailed("deleteAllRecordings, ", reply->error());
         }
+        reply->deleteLater();
     });
 }
 
@@ -159,15 +159,15 @@ void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
         jsonArray.append(studentId);
     }
     QByteArray data = QJsonDocument(jsonArray).toJson();
-
     QNetworkReply *reply = networkManager->sendCustomRequest(request, "DELETE", data);
+
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
         if (reply->error() == QNetworkReply::NoError) {
             emit deleteSelectedRecordingsSuccessful();
+        } else {
+            emit requestFailed("deleteSelectedRecordings, ",reply->error());
         }
-        else {
-            emit deleteSelectedRecordingsFailed(reply->error());
-        }
+        reply->deleteLater();
     });
 }
 
@@ -196,10 +196,10 @@ void BackendManager::addRecording(const std::map<QString, std::variant<QString, 
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
         if (reply->error() == QNetworkReply::NoError) {
             emit addRecordingSuccessful();
+        } else {
+            emit requestFailed("addRecording, ", reply->error());
         }
-        else {
-            emit addRecordingFailed(reply->error());
-        }
+        reply->deleteLater();
     });
 }
 
@@ -241,13 +241,11 @@ void BackendManager::filteredSelect(const std::map<QString, std::variant<QString
                 qDebug() << studentIds;
                 emit filteredSelectSuccessful(studentIds);
             }
+        } else {
+            emit requestFailed("filteredSelect, ", reply->error());
         }
-        else {
-            emit filteredSelectFailed(reply->error());
-        }
+        reply->deleteLater();
     });
 }
 
-BackendManager::~BackendManager() {
-    delete networkManager;
-}
+

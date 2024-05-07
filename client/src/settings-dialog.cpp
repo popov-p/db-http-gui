@@ -1,6 +1,6 @@
 #include <QNetworkReply>
 #include "settings-dialog.h"
-
+#include <QDir>
 
 SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) : QDialog(parent),
                                                                                   backendManager(backendManager) {
@@ -19,8 +19,8 @@ SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) 
 }
 
 void SettingsDialog::initHostLayout() {
-    ipLabel = new QLabel("ip: ");
-    ipLineEdit = new QLineEdit("http://127.0.0.1:8000");
+    ipLabel = new QLabel("ip: ", this);
+    ipLineEdit = new QLineEdit("http://127.0.0.1:8000", this);
     hIpLayout = new QHBoxLayout();
     hIpLayout->addWidget(ipLabel);
     hIpLayout->addWidget(ipLineEdit);
@@ -28,8 +28,8 @@ void SettingsDialog::initHostLayout() {
 
 
 void SettingsDialog::initUsernameLayout() {
-    usernameLabel = new QLabel("username: ");
-    usernameLineEdit = new QLineEdit();
+    usernameLabel = new QLabel("username: ", this);
+    usernameLineEdit = new QLineEdit(this);
     hUsernameLayout = new QHBoxLayout();
 
     usernameLineEdit->setValidator(credentialsValidator);
@@ -37,8 +37,8 @@ void SettingsDialog::initUsernameLayout() {
     hUsernameLayout->addWidget(usernameLineEdit);
 }
 void SettingsDialog::initPasswordLayout() {
-    passwordLabel = new QLabel("password: ");
-    passwordLineEdit = new QLineEdit();
+    passwordLabel = new QLabel("password: ", this);
+    passwordLineEdit = new QLineEdit(this);
     hPasswordLayout = new QHBoxLayout();
 
     passwordLineEdit->setEchoMode(QLineEdit::Password);
@@ -48,8 +48,8 @@ void SettingsDialog::initPasswordLayout() {
 
 }
 void SettingsDialog::initLogDirLayout() {
-    logdirLabel = new QLabel("logdir: ");
-    logdirLineEdit = new QLineEdit();
+    logdirLabel = new QLabel("logdir: ", this);
+    logdirLineEdit = new QLineEdit(this);
     hLogDirLayout = new QHBoxLayout();
 
     logdirLineEdit->setText("../log");
@@ -57,8 +57,8 @@ void SettingsDialog::initLogDirLayout() {
     hLogDirLayout->addWidget(logdirLineEdit);
 }
 void SettingsDialog::initLogLayout() {
-    logLabel = new QLabel("log severity: ");
-    logComboBox = new QComboBox();
+    logLabel = new QLabel("log severity: ", this);
+    logComboBox = new QComboBox(this);
     logComboBox->addItem("INFO");
     logComboBox->addItem("ERROR");
     hLogLayout = new QHBoxLayout();
@@ -66,22 +66,22 @@ void SettingsDialog::initLogLayout() {
     hLogLayout->addWidget(logComboBox);
 }
 void SettingsDialog::initButtonLayout() {
-    okDialogButton = new QPushButton("Ok");
-    cancelDialogButton = new QPushButton("Cancel");
+    okDialogButton = new QPushButton("Ok", this);
+    cancelDialogButton = new QPushButton("Cancel", this);
     hButtonLayout = new QHBoxLayout();
 
     hButtonLayout->addWidget(okDialogButton);
     hButtonLayout->addWidget(cancelDialogButton);
 }
 void SettingsDialog::initSettingsStatusLayout() {
-    settingsStatus = new QLabel();
+    settingsStatus = new QLabel(this);
     hSettingsStatusLayout = new QHBoxLayout();
 
     settingsStatus->setAlignment(Qt::AlignCenter);
     hSettingsStatusLayout->addWidget(settingsStatus);
 }
 void SettingsDialog::initVerticalDialogLayout() {
-    verticalDialogLayout = new QVBoxLayout();
+    verticalDialogLayout = new QVBoxLayout(this);
 
     verticalDialogLayout->addLayout(hIpLayout);
     verticalDialogLayout->addLayout(hUsernameLayout);
@@ -99,44 +99,20 @@ void SettingsDialog::initConnections() {
     connect(cancelDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotCancelButtonClicked);
     connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
-                ipLineEdit->setText("http://127.0.0.1:8000");
-                usernameLineEdit->clear();
-                passwordLineEdit->clear();
-                logdirLineEdit->setText("../log");
-                logComboBox->setCurrentIndex(0);
-                settingsStatus->clear();
-
-                /*dump cfg ini*/
-                hide();
-                qDebug() << "Qt UI: SettingsDialog ok button done";
-                LOG(INFO) << "Qt UI: SettingsDialog ok button done";
+        dumpCfgIni();
+        ipLineEdit->setText("http://127.0.0.1:8000");
+        usernameLineEdit->clear();
+        passwordLineEdit->clear();
+        logdirLineEdit->setText("../log");
+        logComboBox->setCurrentIndex(0);
+        settingsStatus->clear();
+        hide();
+        qDebug() << "Qt UI: SettingsDialog ok button done";
+        LOG(INFO) << "Qt UI: SettingsDialog ok button done";
     });
     connect(backendManager, &BackendManager::loginFailed, this, [this] (int errcode) {
         settingsStatus->setText("Auth failed! Errcode: " + QString::number(errcode));
     });
-}
-
-
-SettingsDialog::~SettingsDialog() {
-    delete okDialogButton;
-    delete cancelDialogButton;
-    delete usernameLabel;
-    delete passwordLabel;
-    delete logdirLabel;
-    delete logLabel;
-    delete usernameLineEdit;
-    delete passwordLineEdit;
-    delete logdirLineEdit;
-    delete logComboBox;
-    delete settingsStatus;
-    delete hUsernameLayout;
-    delete hPasswordLayout;
-    delete hLogDirLayout;
-    delete hLogLayout;
-    delete hSettingsStatusLayout;
-    delete hButtonLayout;
-    delete verticalDialogLayout;
-    delete credentialsValidator;
 }
 
 void SettingsDialog::slotOkButtonDone() {
@@ -145,10 +121,6 @@ void SettingsDialog::slotOkButtonDone() {
         backendManager->setBaseURL(ipLineEdit->text().replace(" ", ""));
         backendManager->login(usernameLineEdit->text(),
                               passwordLineEdit->text());
-        /*TODO: fix this later*/
-        //dumpCfgIni(client.get_cfg_path());
-        //client.load_cfg();
-        //client.start_logging();
     }
     else {
         settingsStatus->setText("set valid parameters");
@@ -162,15 +134,20 @@ void SettingsDialog::slotCancelButtonClicked() {
     hide();
 }
 
-void SettingsDialog::dumpCfgIni(std::string cfg_path) {
-    QSettings *settingsIni = new QSettings(QString::fromStdString(cfg_path), QSettings::IniFormat);
-    settingsIni->beginGroup("auth");
-    settingsIni->setValue("username", usernameLineEdit->text());
-    settingsIni->setValue("password", passwordLineEdit->text());
-    settingsIni->beginGroup("logging");
-    settingsIni->setValue("dir", logdirLineEdit->text());
-    settingsIni->setValue("severity", logComboBox->currentText());
-    settingsIni->endGroup();
-    delete settingsIni;
+void SettingsDialog::dumpCfgIni() {
+    QSettings settingsIni = QSettings(QDir(logdirLineEdit->text() + QString("/../cfg.ini")).absolutePath(), QSettings::IniFormat);
+
+    settingsIni.beginGroup("base-url");
+    settingsIni.setValue("ip", ipLineEdit->text());
+    settingsIni.endGroup();
+
+    settingsIni.beginGroup("auth");
+    settingsIni.setValue("last-active-user", usernameLineEdit->text());
+    settingsIni.endGroup();
+
+    settingsIni.beginGroup("logging");
+    settingsIni.setValue("dir", QDir(logdirLineEdit->text()).absolutePath());
+    settingsIni.setValue("severity", logComboBox->currentText());
+    settingsIni.endGroup();
     LOG(INFO) << "Qt: SettingsDialog dumping cfg";
 }

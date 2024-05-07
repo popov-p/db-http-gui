@@ -15,9 +15,8 @@ class ConnectWidget : public QWidget {
 
 public:
     ConnectWidget(BackendManager *backendManager, QWidget *parent = nullptr);
-    ~ConnectWidget();
+    ~ConnectWidget() = default;
 public slots:
-    //void slotOkButtonDone();
     void slotDisconnectButtonClicked();
 private:
     QVBoxLayout *widgetVLayout;
@@ -33,7 +32,6 @@ private:
     void initConnections();
 signals:
     void connectButtonClicked();
-    //void connectionSuccessful();
 };
 
 
