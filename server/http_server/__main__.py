@@ -43,15 +43,14 @@ def get_db():
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     if credentials.username != correct_username or not pwd_context.verify(credentials.password, correct_hashed_password):
-        raise HTTPException(status_code=403 , detail="Incorrect username or password")
-    return {"message": "Welcome, authorized user!"}
+        return Response(status_code=403, content="Unauthorized")
+    return Response(status_code=200, content="Ok")
 
 @app.get("/fields", response_model=FieldsRequest, dependencies=[Depends(auth)])
 def get_fields(db: Session = Depends(get_db)):
     total = [key for key in Student.__table__.columns.keys()]
     alphabetic = ["last_name", "first_name", "patronymic", "group"]
     comparable = ["year", "course"]
-
     return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable)
 
 
