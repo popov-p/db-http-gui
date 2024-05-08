@@ -22,7 +22,7 @@ class StudentCreate(BaseModel):
     course: int
     photo: str
 
-class FieldsRequest(BaseModel):
+class FieldsResponse(BaseModel):
     total:List[str]
     alphabetic: List[str]
     comparable: List[str]

@@ -1,14 +1,17 @@
 
-from fastapi import FastAPI, Query, Depends, Response, HTTPException
+from fastapi import FastAPI, Query, Depends, Request, Response, HTTPException
 from pydantic import ValidationError
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import inspect
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from typing import List, Optional
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import FieldsRequest
+from server.http_server.schemas import FieldsResponse
 
 from server.http_server import crud
 import os
@@ -40,7 +43,7 @@ Session = sessionmaker(bind=engine)
 def get_db():
     db = Session()
     try:
-        yield db
+       yield db
     finally:
         db.close()
 
@@ -48,53 +51,47 @@ def get_db():
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     if credentials.username != correct_username or not pwd_context.verify(credentials.password, correct_hashed_password):
-        logging.error("auth: authentication attempt failed")
+        logging.error("POST /auth: failed, status_code = 403")
         raise HTTPException(status_code=403, detail="Unauthorized")
-    logging.info("auth: authentication attempt succeeded")
+    logging.info("POST /auth: success, status_code = 200")
     return Response(status_code=200, content="Ok")
 
-@app.get("/fields", response_model=FieldsRequest, dependencies=[Depends(auth)])
+@app.get("/fields", response_model=FieldsResponse, dependencies=[Depends(auth)])
 def get_fields(db: Session = Depends(get_db)):
-    logging.info("/fields call")
-    total = [key for key in Student.__table__.columns.keys()]
-    alphabetic = ["last_name", "first_name", "patronymic", "group"]
-    comparable = ["year", "course"]
-    return FieldsRequest(total=total, alphabetic=alphabetic, comparable=comparable)
+    logging.info("GET /fields call")
+    columns = inspect(Student).columns
+    total = [col_name for col_name, column in columns.items()]
+    alphabetic = [col_name for col_name, column in columns.items() if (column.type.python_type == str) and col_name != "photo"]
+    comparable = [col_name for col_name, column in columns.items() if (column.type.python_type == int) and col_name != "id"]
+    return FieldsResponse(total=total, alphabetic=alphabetic, comparable=comparable)
 
 
 # Create student
 @app.post("/add", response_model=schemas.StudentCreate, dependencies=[Depends(auth)])
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
-    try:
-        return crud.create_student(db=db, student=student)
-    except ValidationError as e:
-        logging.error(f"Validation error: {e}")
-        raise HTTPException(status_code=422, detail="Validation error")
-    except Exception as e:
-        logging.error(f"Error student creation: {e}")
-        raise HTTPException(status_code=500, detail="Internal server errror")
+    logging.info("POST /add call")
+    return crud.create_student(db=db, student=student)
 
 @app.get("/students", response_model=List[schemas.Student], dependencies=[Depends(auth)])
 def get_all_students(db: Session = Depends(get_db)):
-    logging.info("/students, get_all_students call")
+    logging.info("GET /students call")
     return crud.get_all_students(db)
 
 # Delete selected students ID 
 @app.delete("/delete-selected", dependencies=[Depends(auth)])
 def delete_student(data: List[int], db: Session = Depends(get_db)):
-    logging.info("/delete-selected, delete student")
+    logging.info("DELETE /delete-selected call")
     if data is not None:
         for delete_id in data:
-            db_student = crud.get_student(db, student_id=delete_id)
-            if db_student is None:
-                return Response(status_code=404, content="Student not found")
-            crud.delete_student(db=db, student_id=delete_id)
-        logging.warning("/delete-selected, ")
-    return Response(status_code=200)
+                crud.delete_student(db=db, student_id=delete_id)
+    else:
+        logging.error("DELETE /delete-selected, input deletion data is empty, status_code = 404")
+        raise HTTPException(status_code=404, detail="Empty delete data")
 
 # Delete all students 
 @app.delete("/delete-all", response_model=int, dependencies=[Depends(auth)])
 def delete_all_students(db: Session = Depends(get_db)):
+    logging.info("DELETE /delete-all call")
     return crud.delete_all_students(db=db)
 
 @app.get("/filter", response_model=List[int], dependencies=[Depends(auth)])
@@ -109,6 +106,7 @@ def filter_by(
     and_greater:Optional[bool] = Query(None, description="Show greater than"),
     db: Session = Depends(get_db)
 ):
+    logging.info("GET /filter call")
     params = locals()
     params.pop("db")
 
@@ -126,4 +124,10 @@ def filter_by(
 
 @app.post("/test-id", response_model=List[int])
 def test_get_id_by_data(student:schemas.StudentCreate, db: Session = Depends(get_db)):
+    #testing function, no logging provided
     return crud.id_by_data(db=db, student=student)
+
+@app.exception_handler(RequestValidationError)
+def validation_exception_handler(request: Request, exc: RequestValidationError):
+    logging.error(f"Validation error occurred: {exc}")
+    return Response(status_code=422, content={"detail": "Validation error", "errors": exc.errors()})

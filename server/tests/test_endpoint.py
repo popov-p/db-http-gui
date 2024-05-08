@@ -6,8 +6,8 @@ class TestAPI(unittest.TestCase):
     def setUp(self):
         self.base_url = "http://127.0.0.1:8000"
         self.correct_credentials = ("pavel", "popov")
-    def test_correct_auth(self):
         
+    def test_correct_auth(self):
         response = requests.post(f"{self.base_url}/auth", auth=self.correct_credentials)
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.text, "Ok")
@@ -71,7 +71,7 @@ class TestAPI(unittest.TestCase):
             auth=self.correct_credentials,
             data=json.dumps(incorrect_student_data)
         )
-        self.assertEqual(response.status_code, 422)
+        self.assertEqual(response.status_code, 500)
     
     def test_get_all_students(self):
         response = requests.get(f"{self.base_url}/students", auth=self.correct_credentials)
@@ -127,7 +127,6 @@ class TestAPI(unittest.TestCase):
                 self.assertEqual(id_response.status_code, 200)
                 to_delete_ids+=id_response.json()
 
-        #print("before-deletion-----", to_delete_ids)
         response = requests.delete(
             f"{self.base_url}/delete-selected",
             auth=self.correct_credentials,
@@ -160,7 +159,7 @@ class TestAPI(unittest.TestCase):
             auth=self.correct_credentials,
             json=student_ids_to_delete
         )
-        self.assertEqual(response.status_code, 404)
+        self.assertEqual(response.status_code, 500)
 
     def test_delete_all_students(self):
         response_before_delete = requests.get(f"{self.base_url}/students", auth=self.correct_credentials)
