@@ -70,7 +70,7 @@ def delete_student(data: List[int], db: Session = Depends(get_db)):
         for delete_id in data:
             db_student = crud.get_student(db, student_id=delete_id)
             if db_student is None:
-                raise HTTPException(status_code=404, detail="Student not found")
+                return Response(status_code=404, content="Student not found")
             crud.delete_student(db=db, student_id=delete_id)
     return Response(status_code=200)
 
@@ -105,3 +105,7 @@ def filter_by(
                 if value:
                     filtering_params["bool"] = (key, value)
     return crud.filter(db=db, **filtering_params)
+
+@app.post("/test-id", response_model=List[int])
+def test_get_id_by_data(student:schemas.StudentCreate, db: Session = Depends(get_db)):
+    return crud.id_by_data(db=db, student=student)
