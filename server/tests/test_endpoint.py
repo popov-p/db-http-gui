@@ -16,7 +16,7 @@ class TestAPI(unittest.TestCase):
         incorrect_credentials = ("lol", "kek")
         response = requests.post(f"{self.base_url}/auth", auth=incorrect_credentials)
         self.assertEqual(response.status_code, 403)
-        self.assertEqual(response.text, "Unauthorized")
+        self.assertEqual(response.json()["detail"], "Unauthorized")
 
     def test_get_fields(self):
         response = requests.get(f"{self.base_url}/fields", auth=self.correct_credentials)
@@ -127,7 +127,7 @@ class TestAPI(unittest.TestCase):
                 self.assertEqual(id_response.status_code, 200)
                 to_delete_ids+=id_response.json()
 
-        print("before-deletion-----", to_delete_ids)
+        #print("before-deletion-----", to_delete_ids)
         response = requests.delete(
             f"{self.base_url}/delete-selected",
             auth=self.correct_credentials,

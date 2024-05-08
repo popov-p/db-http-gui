@@ -1,7 +1,7 @@
 from configparser import ConfigParser
 from passlib.context import CryptContext
 import os
-
+import logging
 def init_config(config_file_path):
     if os.path.exists(config_file_path):
         config = ConfigParser()
@@ -32,7 +32,10 @@ def init_config(config_file_path):
         log_severity = ''
         while log_severity.upper() not in ["ERROR", "INFO"]:       
             log_severity = input("Input log severity: [ERROR\\INFO] ").upper()
-        config.set("logging", "severity", log_severity)
+            if log_severity == "ERROR":
+                config.set("logging", "severity", str(logging.ERROR))
+            else:
+                config.set("logging", "severity", str(logging.INFO))
         # [auth]
         config.add_section("auth")
         login = input("Input login: ")

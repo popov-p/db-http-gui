@@ -1,19 +1,21 @@
 
-from fastapi import FastAPI, Query
-from fastapi import Depends, Response
+from fastapi import FastAPI, Query, Depends, Response, HTTPException
+from pydantic import ValidationError
+
 from sqlalchemy.orm import sessionmaker
-from fastapi.exceptions import HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 
 from typing import List, Optional
 from server.http_server import models, schemas, utils
 from server.http_server.models import Student, engine
-from server.http_server.schemas import FieldsRequest, StudentCreate
+from server.http_server.schemas import FieldsRequest
+
 from server.http_server import crud
 import os
 from configparser import ConfigParser
 from passlib.context import CryptContext
 
+import logging
 config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'cfg.ini')
 
@@ -25,6 +27,9 @@ config = ConfigParser()
 config.read(config_file_path)
 correct_username = config.get('auth', 'username')
 correct_hashed_password = config.get('auth', 'password')
+
+severity = int(config.get('logging', 'severity'))
+logging.basicConfig(filename=os.path.join(config.get('logging', 'dir'), 'backend.log'), level=severity, format='%(asctime)s - %(levelname)s - %(message)s')
 security = HTTPBasic()
 
 
@@ -43,11 +48,14 @@ def get_db():
 def auth(credentials: HTTPBasicCredentials = Depends(security)):
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
     if credentials.username != correct_username or not pwd_context.verify(credentials.password, correct_hashed_password):
-        return Response(status_code=403, content="Unauthorized")
+        logging.error("auth: authentication attempt failed")
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    logging.info("auth: authentication attempt succeeded")
     return Response(status_code=200, content="Ok")
 
 @app.get("/fields", response_model=FieldsRequest, dependencies=[Depends(auth)])
 def get_fields(db: Session = Depends(get_db)):
+    logging.info("/fields call")
     total = [key for key in Student.__table__.columns.keys()]
     alphabetic = ["last_name", "first_name", "patronymic", "group"]
     comparable = ["year", "course"]
@@ -57,21 +65,31 @@ def get_fields(db: Session = Depends(get_db)):
 # Create student
 @app.post("/add", response_model=schemas.StudentCreate, dependencies=[Depends(auth)])
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
-    return crud.create_student(db=db, student=student)
+    try:
+        return crud.create_student(db=db, student=student)
+    except ValidationError as e:
+        logging.error(f"Validation error: {e}")
+        raise HTTPException(status_code=422, detail="Validation error")
+    except Exception as e:
+        logging.error(f"Error student creation: {e}")
+        raise HTTPException(status_code=500, detail="Internal server errror")
 
 @app.get("/students", response_model=List[schemas.Student], dependencies=[Depends(auth)])
 def get_all_students(db: Session = Depends(get_db)):
+    logging.info("/students, get_all_students call")
     return crud.get_all_students(db)
 
 # Delete selected students ID 
 @app.delete("/delete-selected", dependencies=[Depends(auth)])
 def delete_student(data: List[int], db: Session = Depends(get_db)):
+    logging.info("/delete-selected, delete student")
     if data is not None:
         for delete_id in data:
             db_student = crud.get_student(db, student_id=delete_id)
             if db_student is None:
                 return Response(status_code=404, content="Student not found")
             crud.delete_student(db=db, student_id=delete_id)
+        logging.warning("/delete-selected, ")
     return Response(status_code=200)
 
 # Delete all students 
