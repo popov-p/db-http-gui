@@ -15,7 +15,7 @@ MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : QWidge
 }
 
 void MainWidget::slotDisconnectButtonClicked() {
-    LOG(INFO) << "Qt: MainWidget slot disconnect button clicked";
+    LOG(INFO) << "Disconnect button clicked";
     addButton->hide();
     deleteSelectedButton->hide();
     deleteAllButton->hide();
@@ -49,10 +49,11 @@ void MainWidget::slotDisconnectButtonClicked() {
 
 
 void MainWidget::slotAddButtonClicked() {
-    LOG(INFO) << "Qt: MainWidget slot add button clicked";
+    LOG(INFO) << "Add button clicked";
     addElementDialog = new AddElementDialog(backendManager, this);
 
     QObject::connect(addElementDialog, &QDialog::finished, addElementDialog, [this]() {
+        LOG(INFO) << "Add element dialog finished, deleting temporary object";
         addElementDialog->deleteLater();
     });
 
@@ -69,6 +70,7 @@ void MainWidget::slotAddButtonClicked() {
 }
 
 void MainWidget::slotUpdateCompareElementsComboBox(const QString& changedField) {
+    LOG(INFO) << "Updating compare elements combo-box";
     compareElementsComboBox->clear();
     compareElementsComboBox->addItem("-");
     if(changedField != "-") {
@@ -89,7 +91,7 @@ void MainWidget::slotUpdateCompareElementsComboBox(const QString& changedField) 
 }
 
 void MainWidget::slotLoginSuccessful() {
-    LOG(INFO) << "Qt: MainWidget handled slot connect button clicked";
+    LOG(INFO) << "Login successful";
     usernameLabel->setText(backendManager->getActiveUser());
     disconnectButton->show();
     addButton->show();
@@ -116,6 +118,7 @@ void MainWidget::slotLoginSuccessful() {
 }
 
 void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapResponse) {
+    LOG(INFO) << "Get headers successful";
     desiredHeaderOrder = fieldsMapResponse["total"];
     alphCompMap.insert("comparable", fieldsMapResponse["comparable"]);
     alphCompMap.insert("alphabetic", fieldsMapResponse["alphabetic"]);
@@ -127,6 +130,7 @@ void MainWidget::slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMapRe
 }
 
 void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows) {
+    LOG(INFO) << "Get all recordings successful";
     idLogicalIndex = currentKeyOrder.indexOf("id");
     photoLogicalIndex = currentKeyOrder.indexOf("photo");
     compHeaderData.clear();
@@ -166,28 +170,31 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
 void MainWidget::slotDeleteAllRecordingsSuccessful(int countDeleted) {
     model->clear();
     if (!countDeleted) {
+        LOG(ERROR) << "Delete all recodrings, nothing to delete";
         responseLabel->setText("Nothing to delete");
     }
     else {
+        LOG(INFO) << "Deleted " + QString::number(countDeleted).toStdString() + " recordings";
         responseLabel->setText("Deleted " + QString::number(countDeleted) + " recordings");
     }
 }
 
 void MainWidget::slotDeleteSelectedRecordingsSuccessful() {
-    qDebug() << "slotDeleteSelectedRecordingsSuccessful";
+    LOG(INFO) << "Delete selected recordings success";
     responseLabel->setText("Delete successful!");
     model->clear();
     backendManager->getAllRecordings();
 }
 
 void MainWidget::slotAddRecordingSuccessful() {
-    qDebug() << "slotAddRecordingSuccessful";
+    LOG(INFO) << "Add selected recordings success";
     responseLabel->setText("Add successful!");
     model->clear();
     backendManager->getAllRecordings();
 }
 
 void MainWidget::slotClearComparableFields() {
+    LOG(INFO) << "Comparable fields cleanup";
     startsWithLetterComboBox->setCurrentIndex(0);
     alphabetComboBox->setCurrentIndex(0);
     compareComboBox->setCurrentIndex(0);
@@ -198,6 +205,7 @@ void MainWidget::slotClearComparableFields() {
     filterButton->show();
 }
 void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds) {
+    LOG(INFO) << "Filtered select success";
     int rowCount = model->rowCount();
 
     for (int row = 0; row < rowCount; ++row) {
@@ -221,12 +229,14 @@ void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds) {
 }
 
 void MainWidget::slotFilterButtonClicked() {
+    LOG(INFO) << "Filter button clicked";
     std::map<QString, std::variant<QString, int>> requestArgs;
     bool alphabereticFilterActive = startsWithLetterComboBox->currentText() != "-";
     bool alphabeticFilterCorrect = alphabetComboBox->currentText() != "-";
     bool comparableFilterActive = compareComboBox->currentText() != "-";
     bool comparableFilterCorrect = compareElementsComboBox->currentText() != "-";
     if (!alphabereticFilterActive && !comparableFilterActive) {
+        LOG(ERROR) << "Filtering options are empty";
         responseLabel->setText("Nothing to filter!");
         dropFilterButton->hide();
         model->clear();
@@ -234,17 +244,20 @@ void MainWidget::slotFilterButtonClicked() {
     }
     else if (alphabereticFilterActive && !comparableFilterActive) {
         if (alphabeticFilterCorrect) {
+            LOG(INFO) << "Alphabetic fileds filtering";
             requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
             backendManager->filteredSelect(requestArgs);
             dropFilterButton->show();
         }
         else {
+            LOG(ERROR) << "Alphabetic fields, incorrect filtering options";
             requestArgs.clear();
             responseLabel->setText("Choose correct letter");
         }
     }
     else if (!alphabereticFilterActive && comparableFilterActive) {
         if (comparableFilterCorrect) {
+            LOG(INFO) << "Comparable Fields filtering";
             requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
             requestArgs["and_less"] = leqCheckBox->isChecked();
             requestArgs["and_greater"] = geqCheckBox->isChecked();
@@ -252,12 +265,14 @@ void MainWidget::slotFilterButtonClicked() {
             dropFilterButton->show();
         }
         else {
+            LOG(ERROR) << "Comparable fields, incorrect filtering options";
             requestArgs.clear();
             responseLabel->setText("Choose correct comparable field");
         }
     }
     else {
         if (alphabeticFilterCorrect && comparableFilterCorrect) {
+            LOG(INFO) << "Both filtering types active";
             requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
             requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
             requestArgs["and_less"] = leqCheckBox->isChecked();
@@ -266,6 +281,7 @@ void MainWidget::slotFilterButtonClicked() {
             dropFilterButton->show();
         }
         else {
+            LOG(ERROR) << "Error setting filtering options";
             requestArgs.clear();
             responseLabel->setText("Bad args");
         }

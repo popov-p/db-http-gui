@@ -1,12 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-
-#include "settings-dialog.h"
-#include "connect-widget.h"
-#include "backend-manager.h"
-
-#include "main-widget.h"
+#include <glog/logging.h>
 #include <QMainWindow>
 #include <QPushButton>
 #include <QLabel>
@@ -15,9 +10,12 @@
 #include <QIntValidator>
 #include <QDialog>
 #include <QStackedWidget>
-#include <glog/logging.h>
 #include <QNetworkAccessManager>
 #include <QAuthenticator>
+#include "settings-dialog.h"
+#include "connect-widget.h"
+#include "backend-manager.h"
+#include "main-widget.h"
 
 class MainWindow : public QMainWindow
 {

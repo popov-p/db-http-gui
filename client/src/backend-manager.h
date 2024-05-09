@@ -1,15 +1,13 @@
 #ifndef BACKENDMANAGER_H
 #define BACKENDMANAGER_H
-
-#include <QObject>
+#include <glog/logging.h>
 #include <QNetworkAccessManager>
 #include <QStandardItem>
 #include <QNetworkReply>
-#include <QAuthenticator>
-#include <glog/logging.h>
 
 class BackendManager : public QObject {
     Q_OBJECT
+
 public:
     explicit BackendManager(QObject *parent = nullptr);
     ~BackendManager() = default;
@@ -23,7 +21,6 @@ public:
     void deleteSelectedRecordings(const QList<int>& studentIds);
     void addRecording(const std::map<QString, std::variant<QString, int>>& dataMap);
     void filteredSelect(const std::map<QString, std::variant<QString, int>>& requestArgs);
-    /*methods to access database fields here*/
     void logout();
 private:
     QString baseUrl;

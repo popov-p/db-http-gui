@@ -1,10 +1,7 @@
 #ifndef SETTINGSDIALOG_H
 #define SETTINGSDIALOG_H
 
-#include "backend-manager.h"
-
 #include <glog/logging.h>
-
 #include <QDialog>
 #include <QPushButton>
 #include <QVBoxLayout>
@@ -15,8 +12,7 @@
 #include <QLineEdit>
 #include <QSettings>
 #include <QValidator>
-#include <QNetworkAccessManager>
-#include <QAuthenticator>
+#include "backend-manager.h"
 
 class NoSpcValidator : public QValidator {
 public:
@@ -36,6 +32,7 @@ class SettingsDialog : public QDialog {
 public:
     SettingsDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void dumpCfgIni();
+    void startLogging();
     ~SettingsDialog() = default;
 public slots:
     void slotOkButtonDone();
@@ -76,6 +73,5 @@ private:
 signals:
     void okButtonDone();
 };
-
 
 #endif // SETTINGSDIALOG_H

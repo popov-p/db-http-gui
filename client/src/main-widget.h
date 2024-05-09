@@ -1,29 +1,26 @@
 #ifndef MAINWIDGET_H
 #define MAINWIDGET_H
 
-
-#include <QObject>
+#include <glog/logging.h>
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
 #include <QIntValidator>
-#include <glog/logging.h>
 #include <QStandardItemModel>
 #include <QTableView>
 #include <QRegularExpression>
 #include <QSortFilterProxyModel>
 #include <QCheckBox>
 #include <QHeaderView>
-#include <QNetworkAccessManager>
-#include <QAuthenticator>
 #include <QTimer>
 #include "add-element-dialog.h"
 #include "backend-manager.h"
 
 class MainWidget : public QWidget {
     Q_OBJECT
+
 public:
     MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
     ~MainWidget() = default;
@@ -47,10 +44,9 @@ private:
     QHBoxLayout *hFilterButtonsLayout;
     QHBoxLayout *hFilterLabelLayout;
 
-    /*database*/
     QStandardItemModel *model;
     QTableView *tableView;
-    /*filtering options*/
+
     QLabel *filterLabel;
     QLabel *startsWithLetterLabel;
     QComboBox *startsWithLetterComboBox;
@@ -94,4 +90,5 @@ signals:
 };
 
 void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStandardItemModel* model);
+
 #endif // MAINWIDGET_H

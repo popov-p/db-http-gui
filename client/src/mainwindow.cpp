@@ -20,12 +20,12 @@ MainWindow::MainWindow(QWidget *parent)
 }
 
 void MainWindow::slotConnectButtonClicked() {
-    LOG(INFO) << "Qt: MainWindow connect button clicked";
+    LOG(INFO) << "Connect button clicked";
     settingsDialog->exec();
 }
 
 void MainWindow::slotDisconnectButtonClicked() {
-    LOG(INFO) << "Qt: MainWindow slot disconnect button clicked";
+    LOG(INFO) << "Disconnect button clicked";
     QTimer *timer = new QTimer();
     connect(timer, &QTimer::timeout, this, [this, timer]() {
         centralStackedWidget->setCurrentWidget(connectWidget);
@@ -35,7 +35,7 @@ void MainWindow::slotDisconnectButtonClicked() {
 }
 
 void MainWindow::slotConnectionSuccessful() {
-    LOG(INFO) << "Qt: MainWindow slot connection successful";
+    LOG(INFO) << "Connection successful";
     QTimer *timer = new QTimer();
     connect(timer, &QTimer::timeout, this, [this, timer]() {
         centralStackedWidget->setCurrentWidget(mainWidget);

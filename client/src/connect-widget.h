@@ -1,14 +1,13 @@
 #ifndef CONNECTWIDGET_H
 #define CONNECTWIDGET_H
 
-#include "backend-manager.h"
-
+#include <glog/logging.h>
 #include <QObject>
 #include <QVBoxLayout>
 #include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
-#include <glog/logging.h>
+#include "backend-manager.h"
 
 class ConnectWidget : public QWidget {
     Q_OBJECT
@@ -33,6 +32,5 @@ private:
 signals:
     void connectButtonClicked();
 };
-
 
 #endif // CONNECTWIDGET_H

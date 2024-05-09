@@ -38,7 +38,6 @@ void AddElementDialog::initButtonLayout() {
     hButtonLayout->addWidget(cancelDialogButton);
 }
 
-
 void AddElementDialog::initSettingsStatusLayout() {
     settingsStatus = new QLabel(this);
     settingsStatus->setAlignment(Qt::AlignCenter);
@@ -64,7 +63,7 @@ void AddElementDialog::initConnections() {
 }
 
 void AddElementDialog::slotOkButtonDone() {
-    qDebug() << "Qt : AddElementDialog slot ok button done";
+    LOG(INFO) << "Slot ok button done";
     bool validation_success = true;
     std::map<QString, std::variant<QString, int>> dataMap;
 
@@ -75,6 +74,7 @@ void AddElementDialog::slotOkButtonDone() {
             QString fieldKey = std::get<1>(widgetTuple)->text().remove(": ");
 
             if (lineEdit->text().isEmpty()) {
+                LOG(ERROR) << "Validation failed";
                 settingsStatus->setText("Incorrect Felds!");
                 validation_success = false;
                 dataMap.clear();
@@ -87,6 +87,7 @@ void AddElementDialog::slotOkButtonDone() {
             }
         }
     }
+
     if(photoPathLineEdit->text().isEmpty()) {
         validation_success = false;
         dataMap.clear();
@@ -108,17 +109,18 @@ void AddElementDialog::slotOkButtonDone() {
         inputFieldsCleanup();
         photoPathLineEdit->clear();
         settingsStatus->clear();
-
+        LOG(INFO) << "Validation success";
         backendManager->addRecording(dataMap);
         emit okButtonDone();
     }
     else {
+        LOG(ERROR) << "Incorrect data set";
         settingsStatus->setText("Add correct data");
     }
 }
 
 void AddElementDialog::slotCancelButtonClicked() {
-    LOG(INFO) << "Qt: AddElementDialog slotCancelButtonClicked";
+    LOG(INFO) << "Slot cancel button clicked";
 
     inputFieldsCleanup();
     photoPathLineEdit->clear();
@@ -127,29 +129,29 @@ void AddElementDialog::slotCancelButtonClicked() {
 }
 
 void AddElementDialog::slotAddButtonClicked() {
-    LOG(INFO) << "Qt: AddElementDialog slotAddButtonClicked";
+    LOG(INFO) << "Slot add button clicked";
     QString filePath = QFileDialog::getOpenFileName(this, tr("Choose photo"), "", tr("Extensions (*.png *.jpg *.jpeg *.bmp *.gif)"));
     if (!filePath.isEmpty()) {
         photoPathLineEdit->setText(filePath);
         addPhotoButton->hide();
         deletePhotoButton->show();
     }
-
 }
 
 void AddElementDialog::slotDeletePhotoButtonClicked() {
-    LOG(INFO) << "Qt: AddElementDialog slotDeleteButtonClicked";
+    LOG(INFO) << "Slot add button clicked";
     photoPathLineEdit->clear();
     deletePhotoButton->hide();
     addPhotoButton->show();
 }
 
 void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList) {
+    LOG(INFO) << "Constructing input fields";
     if(!fieldsList.empty()) {
         alphabeticValidator = new QRegularExpressionValidator(QRegularExpression("[a-zA-Z\\-]+"), this);
         comparableValidator = new QIntValidator(1960, 2024, this);
         for (auto it = fieldsList.begin(); it != fieldsList.end(); ++it) {
-            QHBoxLayout *layout = new QHBoxLayout(this);
+            QHBoxLayout *layout = new QHBoxLayout();
             QLabel *label = new QLabel(*it + ": ");
             QLineEdit *lineEdit = new QLineEdit(this);
             if (fieldsType == "alphabetic") {
@@ -168,11 +170,13 @@ void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList
         }
     }
     else {
+        LOG(ERROR) << "Backend sent incorrect or empty database fields list";
         settingsStatus->setText("Some error occured");
     }
 }
 
 void AddElementDialog::inputFieldsCleanup() {
+    LOG(INFO) << "Input fields cleanup";
     auto widgetLists = {alphabeticFields, comparableFields};
     for (const auto& widgetList: widgetLists) {
         for (const auto& widgetTuple: widgetList) {
@@ -180,4 +184,3 @@ void AddElementDialog::inputFieldsCleanup() {
         }
     }
 }
-

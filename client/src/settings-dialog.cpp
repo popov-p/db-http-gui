@@ -26,7 +26,6 @@ void SettingsDialog::initHostLayout() {
     hIpLayout->addWidget(ipLineEdit);
 }
 
-
 void SettingsDialog::initUsernameLayout() {
     usernameLabel = new QLabel("username: ", this);
     usernameLineEdit = new QLineEdit(this);
@@ -100,6 +99,7 @@ void SettingsDialog::initConnections() {
             this, &SettingsDialog::slotCancelButtonClicked);
     connect(backendManager, &BackendManager::loginSuccessful, this, [this] () {
         dumpCfgIni();
+        startLogging();
         ipLineEdit->setText("http://127.0.0.1:8000");
         usernameLineEdit->clear();
         passwordLineEdit->clear();
@@ -107,10 +107,10 @@ void SettingsDialog::initConnections() {
         logComboBox->setCurrentIndex(0);
         settingsStatus->clear();
         hide();
-        qDebug() << "Qt UI: SettingsDialog ok button done";
-        LOG(INFO) << "Qt UI: SettingsDialog ok button done";
+        LOG(INFO) << "Login successful";
     });
     connect(backendManager, &BackendManager::loginFailed, this, [this] (int errcode) {
+        LOG(ERROR) << "Login failed, errcode = " + QString::number(errcode).toStdString();
         settingsStatus->setText("Auth failed! Errcode: " + QString::number(errcode));
     });
 }
@@ -123,11 +123,13 @@ void SettingsDialog::slotOkButtonDone() {
                               passwordLineEdit->text());
     }
     else {
+        LOG(ERROR) << "Error in startup parameters setting";
         settingsStatus->setText("set valid parameters");
     }
 }
 
 void SettingsDialog::slotCancelButtonClicked() {
+    LOG(INFO) << "Cancel button clicked";
     usernameLineEdit->clear();
     passwordLineEdit->clear();
     settingsStatus->clear();
@@ -150,4 +152,22 @@ void SettingsDialog::dumpCfgIni() {
     settingsIni.setValue("severity", logComboBox->currentText());
     settingsIni.endGroup();
     LOG(INFO) << "Qt: SettingsDialog dumping cfg";
+}
+
+void SettingsDialog::startLogging() {
+    auto logDir = QDir(logdirLineEdit->text());
+    if (!QDir(logdirLineEdit->text()).exists()) {
+        QDir().mkdir(logdirLineEdit->text());
+    }
+
+    if (logComboBox->currentText() == "INFO") {
+        google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());
+    }
+    else if (logComboBox->currentText() == "ERROR") {
+        google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("ERROR_").toStdString()).c_str());
+    }
+    else {
+        google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());
+        LOG(INFO) << "Unknown log lvl. Default: INFO";
+    }
 }

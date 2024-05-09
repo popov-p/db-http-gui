@@ -2,12 +2,10 @@
 #define ADD_ELEMENT_DIALOG_H
 
 #include <glog/logging.h>
-
 #include <QDialog>
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
-#include <QDebug>
 #include <QComboBox>
 #include <QLabel>
 #include <QLineEdit>
@@ -21,6 +19,7 @@ typedef std::tuple<QHBoxLayout*, QLabel*, QLineEdit*> WidgetTuple;
 
 class AddElementDialog : public QDialog {
     Q_OBJECT
+
 public:
     AddElementDialog(BackendManager *backendManager, QWidget *parent = nullptr);
     void setInputFields(QString fieldsType, QStringList fieldsList);
@@ -61,4 +60,4 @@ signals:
     void okButtonDone();
 };
 
-#endif
+#endif //ADD_ELEMENT_DIALOG_H
