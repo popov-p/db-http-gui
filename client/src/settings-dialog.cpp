@@ -35,6 +35,7 @@ void SettingsDialog::initUsernameLayout() {
     hUsernameLayout->addWidget(usernameLabel);
     hUsernameLayout->addWidget(usernameLineEdit);
 }
+
 void SettingsDialog::initPasswordLayout() {
     passwordLabel = new QLabel("password: ", this);
     passwordLineEdit = new QLineEdit(this);
@@ -44,8 +45,8 @@ void SettingsDialog::initPasswordLayout() {
     passwordLineEdit->setValidator(credentialsValidator);
     hPasswordLayout->addWidget(passwordLabel);
     hPasswordLayout->addWidget(passwordLineEdit);
-
 }
+
 void SettingsDialog::initLogDirLayout() {
     logdirLabel = new QLabel("logdir: ", this);
     logdirLineEdit = new QLineEdit(this);
@@ -55,6 +56,7 @@ void SettingsDialog::initLogDirLayout() {
     hLogDirLayout->addWidget(logdirLabel);
     hLogDirLayout->addWidget(logdirLineEdit);
 }
+
 void SettingsDialog::initLogLayout() {
     logLabel = new QLabel("log severity: ", this);
     logComboBox = new QComboBox(this);
@@ -64,6 +66,7 @@ void SettingsDialog::initLogLayout() {
     hLogLayout->addWidget(logLabel);
     hLogLayout->addWidget(logComboBox);
 }
+
 void SettingsDialog::initButtonLayout() {
     okDialogButton = new QPushButton("Ok", this);
     cancelDialogButton = new QPushButton("Cancel", this);
@@ -72,6 +75,7 @@ void SettingsDialog::initButtonLayout() {
     hButtonLayout->addWidget(okDialogButton);
     hButtonLayout->addWidget(cancelDialogButton);
 }
+
 void SettingsDialog::initSettingsStatusLayout() {
     settingsStatus = new QLabel(this);
     hSettingsStatusLayout = new QHBoxLayout();
@@ -79,6 +83,7 @@ void SettingsDialog::initSettingsStatusLayout() {
     settingsStatus->setAlignment(Qt::AlignCenter);
     hSettingsStatusLayout->addWidget(settingsStatus);
 }
+
 void SettingsDialog::initVerticalDialogLayout() {
     verticalDialogLayout = new QVBoxLayout(this);
 
@@ -92,6 +97,7 @@ void SettingsDialog::initVerticalDialogLayout() {
 
     setLayout(verticalDialogLayout);
 }
+
 void SettingsDialog::initConnections() {
     connect(okDialogButton, &QPushButton::clicked,
             this, &SettingsDialog::slotOkButtonDone);
@@ -164,7 +170,7 @@ void SettingsDialog::startLogging() {
         google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());
     }
     else if (logComboBox->currentText() == "ERROR") {
-        google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("ERROR_").toStdString()).c_str());
+        google::SetLogDestination(google::GLOG_ERROR, (logDir.filePath("ERROR_").toStdString()).c_str());
     }
     else {
         google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());

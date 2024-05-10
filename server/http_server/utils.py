@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from passlib.context import CryptContext
 import os
 import logging
+
 def init_config(config_file_path):
     if os.path.exists(config_file_path):
         config = ConfigParser()

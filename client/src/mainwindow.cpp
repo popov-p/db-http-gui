@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include <QDebug>
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QTimer>

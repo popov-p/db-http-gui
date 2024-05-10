@@ -55,8 +55,9 @@ void ConnectWidget::initConnections() {
         connectStatus->setText("Connected!");
     });
 }
+
 void ConnectWidget::slotDisconnectButtonClicked() {
-    LOG(INFO) << "Qt: ConnectWidget slot disconnect button clicked";
+    LOG(INFO) << "Slot disconnect button clicked";
     connectStatus->clear();
     connectStatus->hide();
     connectButton->show();

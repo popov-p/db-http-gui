@@ -2,7 +2,6 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QStandardItemModel>
 #include <QUrlQuery>
 
 void multiarg(QByteArray& ba) {};
@@ -10,6 +9,7 @@ void multiarg(QByteArray& ba) {};
 BackendManager::BackendManager(QObject *parent) : QObject(parent) {
     networkManager = new QNetworkAccessManager(this);
 }
+
 void BackendManager::setBaseURL(QString url) {
     LOG(INFO) << "Setting base URL";
     baseUrl = url;
@@ -25,6 +25,7 @@ void BackendManager::logout() {
     activeUser.clear();
     baseUrl.clear();
 }
+
 void BackendManager::login(QString username, QString password) {
     LOG(INFO) << "POST /auth";
     QNetworkRequest request(QUrl(baseUrl + "/auth"));
@@ -32,6 +33,7 @@ void BackendManager::login(QString username, QString password) {
     multiarg(credentials, username, ":", password);
     request.setRawHeader("Authorization", "Basic " + credentials.toBase64());
     request.setTransferTimeout(500);
+
     QNetworkReply *reply = networkManager->post(request, QByteArray());
     connect(reply, &QNetworkReply::finished, this, [this, reply, username, credentials] () {
         if (reply->error() == QNetworkReply::NoError) {
@@ -39,7 +41,8 @@ void BackendManager::login(QString username, QString password) {
             activeCredentials = credentials;
             LOG(INFO) << "POST /auth success";
             emit loginSuccessful();
-        } else {
+        }
+        else {
             LOG(ERROR) <<"POST /auth failed, " + reply->errorString().toStdString();
             emit loginFailed(reply->error());
         }
@@ -72,15 +75,18 @@ void BackendManager::getHeaders() {
                     }
                     LOG(INFO) << "GET /fields success";
                     emit getHeadersSuccessful(fieldsMapResponse);
-                } else {
+                }
+                else {
                     LOG(ERROR) << "GET /fields failed, ContentConflictError";
                     emit requestFailed("getHeaders, ", QNetworkReply::ContentConflictError);
                 }
-            } else {
+            }
+            else {
                 LOG(ERROR) << "GET /fields failed, UnknownContentError";
                 emit requestFailed("getHeaders, ",QNetworkReply::UnknownContentError);
             }
-        } else {
+        }
+        else {
             LOG(ERROR) <<"GET /fields failed, " + reply->errorString().toStdString();
             emit requestFailed("getHeaders, ",reply->error());
         }
@@ -119,7 +125,8 @@ void BackendManager::getAllRecordings() {
                             }
                         }
                         rows.append(row);
-                    } else {
+                    }
+                    else {
                         LOG(ERROR) << "GET /students falied, UnknownContentError";
                         emit requestFailed("getAllRecordings, ",QNetworkReply::UnknownContentError);
                     }
@@ -130,11 +137,13 @@ void BackendManager::getAllRecordings() {
                     LOG(INFO) << "GET /students success";
                     emit getAllRecordingsSuccessful(keys, rows);
                 }
-            } else {
+            }
+            else {
                 LOG(ERROR) << "GET /students failed, ContentConflictError";
                 emit requestFailed("getAllRecordings, ", QNetworkReply::ContentConflictError);
             }
-        } else {
+        }
+        else {
             LOG(ERROR) << "GET /students failed, " + reply->errorString().toStdString();
             emit requestFailed("getAllRecordings, ", reply->error());
         }
@@ -157,11 +166,13 @@ void BackendManager::deleteAllRecordings() {
             if (ok) {
                 LOG(INFO) << "DELETE /delete-all success";
                 emit deleteAllRecordingsSuccessful(deletedCount);
-            } else {
+            }
+            else {
                 LOG(ERROR) << "DELETE /delete-all, ContentConflictError";
                 emit requestFailed("deleteAllRecordings, ", QNetworkReply::ContentConflictError);
             }
-        } else {
+        }
+        else {
             LOG(ERROR) << "DELETE /delete-all failed, " + reply->errorString().toStdString();
             emit requestFailed("deleteAllRecordings, ", reply->error());
         }
@@ -179,13 +190,14 @@ void BackendManager::deleteSelectedRecordings(const QVector<int>& studentIds) {
         jsonArray.append(studentId);
     }
     QByteArray data = QJsonDocument(jsonArray).toJson();
-    QNetworkReply *reply = networkManager->sendCustomRequest(request, "DELETE", data);
 
+    QNetworkReply *reply = networkManager->sendCustomRequest(request, "DELETE", data);
     connect(reply, &QNetworkReply::finished, this, [this, reply] () {
         if (reply->error() == QNetworkReply::NoError) {
             LOG(INFO) << "DELETE /delete-selected success";
             emit deleteSelectedRecordingsSuccessful();
-        } else {
+        }
+        else {
             LOG(ERROR) << "DELETE /delete-selected failed, " + reply->errorString().toStdString();
             emit requestFailed("deleteSelectedRecordings, ",reply->error());
         }
@@ -221,7 +233,8 @@ void BackendManager::addRecording(const std::map<QString, std::variant<QString, 
         if (reply->error() == QNetworkReply::NoError) {
             LOG(INFO) << "POST /add success";
             emit addRecordingSuccessful();
-        } else {
+        }
+        else {
             LOG(ERROR) << "POST /add failed," + reply->errorString().toStdString();
             emit requestFailed("addRecording, ", reply->error());
         }
@@ -269,12 +282,11 @@ void BackendManager::filteredSelect(const std::map<QString, std::variant<QString
                 LOG(INFO) << "GET /filter success";
                 emit filteredSelectSuccessful(studentIds);
             }
-        } else {
+        }
+        else {
             LOG(ERROR) << "GET /filter failed, " + reply->errorString().toStdString();
             emit requestFailed("filteredSelect, ", reply->error());
         }
         reply->deleteLater();
     });
 }
-
-

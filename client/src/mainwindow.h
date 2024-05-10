@@ -5,7 +5,6 @@
 #include <QMainWindow>
 #include <QPushButton>
 #include <QLabel>
-#include <QVBoxLayout>
 #include <QLineEdit>
 #include <QIntValidator>
 #include <QDialog>

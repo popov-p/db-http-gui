@@ -3,7 +3,6 @@
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
-#include <QDebug>
 
 MainWidget::MainWidget(BackendManager* backendManager, QWidget *parent) : QWidget(parent) , backendManager(backendManager) {
     initHeaderLayout();
@@ -46,7 +45,6 @@ void MainWidget::slotDisconnectButtonClicked() {
     backendManager->logout();
     emit disconnectButtonClicked();
 }
-
 
 void MainWidget::slotAddButtonClicked() {
     LOG(INFO) << "Add button clicked";
@@ -204,6 +202,7 @@ void MainWidget::slotClearComparableFields() {
     dropFilterButton->hide();
     filterButton->show();
 }
+
 void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds) {
     LOG(INFO) << "Filtered select success";
     int rowCount = model->rowCount();
@@ -272,7 +271,7 @@ void MainWidget::slotFilterButtonClicked() {
     }
     else {
         if (alphabeticFilterCorrect && comparableFilterCorrect) {
-            LOG(INFO) << "Both filtering types active";
+            LOG(INFO) << "Both filtering types are active";
             requestArgs[startsWithLetterComboBox->currentText()] = alphabetComboBox->currentText();
             requestArgs[compareComboBox->currentText()] = compareElementsComboBox->currentText().toInt();
             requestArgs["and_less"] = leqCheckBox->isChecked();
@@ -286,7 +285,6 @@ void MainWidget::slotFilterButtonClicked() {
             responseLabel->setText("Bad args");
         }
     }
-
 }
 
 void MainWidget::initHeaderLayout() {
@@ -493,7 +491,3 @@ void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStand
         it.value().second = columnData;
     }
 }
-
-
-
-

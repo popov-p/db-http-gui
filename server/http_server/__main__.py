@@ -32,7 +32,11 @@ correct_username = config.get('auth', 'username')
 correct_hashed_password = config.get('auth', 'password')
 
 severity = int(config.get('logging', 'severity'))
-logging.basicConfig(filename=os.path.join(config.get('logging', 'dir'), 'backend.log'), level=severity, format='%(asctime)s - %(levelname)s - %(message)s')
+
+log_dir = config.get('logging', 'dir')
+os.makedirs(log_dir, exist_ok=True)
+
+logging.basicConfig(filename=os.path.join(log_dir, 'backend.log'), level=severity, format='%(asctime)s - %(levelname)s - %(message)s')
 security = HTTPBasic()
 
 
