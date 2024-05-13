@@ -130,8 +130,3 @@ def filter_by(
 def test_get_id_by_data(student:schemas.StudentCreate, db: Session = Depends(get_db)):
     #testing function, no logging provided
     return crud.id_by_data(db=db, student=student)
-
-@app.exception_handler(RequestValidationError)
-def validation_exception_handler(request: Request, exc: RequestValidationError):
-    logging.error(f"Validation error occurred: {exc}")
-    return Response(status_code=422, content={"detail": "Validation error", "errors": exc.errors()})

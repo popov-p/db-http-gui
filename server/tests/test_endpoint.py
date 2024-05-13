@@ -71,7 +71,7 @@ class TestAPI(unittest.TestCase):
             auth=self.correct_credentials,
             data=json.dumps(incorrect_student_data)
         )
-        self.assertEqual(response.status_code, 500)
+        self.assertEqual(response.status_code, 422)
     
     def test_get_all_students(self):
         response = requests.get(f"{self.base_url}/students", auth=self.correct_credentials)
