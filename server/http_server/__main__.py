@@ -23,7 +23,7 @@ config_file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 'cfg.ini')
 
 
-#utils.init_config(config_file_path)
+utils.init_config(config_file_path)
 
 config = ConfigParser()
 

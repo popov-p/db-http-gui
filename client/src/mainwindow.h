@@ -18,28 +18,28 @@
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow() = default;
+  MainWindow(QWidget *parent = nullptr);
+  ~MainWindow() = default;
 
 public slots:
-    void slotConnectButtonClicked();
+  void slotConnectButtonClicked();
+
 private:
-    QStackedWidget *centralStackedWidget;
-    ConnectWidget *connectWidget;
-    MainWidget *mainWidget;
-    SettingsDialog *settingsDialog;
+  QStackedWidget *centralStackedWidget;
+  ConnectWidget *connectWidget;
+  MainWidget *mainWidget;
+  SettingsDialog *settingsDialog;
 
-    void initConnections();
-    void initCentralStackedWidget();
+  void initConnections();
+  void initCentralStackedWidget();
 
-    BackendManager *backendManager;
+  BackendManager *backendManager;
 private slots:
-    void slotDisconnectButtonClicked();
-    void slotConnectionSuccessful();
+  void slotDisconnectButtonClicked();
+  void slotConnectionSuccessful();
 };
-
 
 #endif // MAINWINDOW_H

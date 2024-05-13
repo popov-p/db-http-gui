@@ -18,77 +18,79 @@
 #include "add-element-dialog.h"
 #include "backend-manager.h"
 
-class MainWidget : public QWidget {
-    Q_OBJECT
+class MainWidget : public QWidget
+{
+  Q_OBJECT
 
 public:
-    MainWidget(BackendManager* backendManager, QWidget *parent = nullptr);
-    ~MainWidget() = default;
+  MainWidget(BackendManager *backendManager, QWidget *parent = nullptr);
+  ~MainWidget() = default;
 public slots:
-    void slotLoginSuccessful();
+  void slotLoginSuccessful();
+
 private:
-    AddElementDialog *addElementDialog;
-    QVBoxLayout *widgetVLayout;
-    QPushButton *disconnectButton;
-    QPushButton *addButton;
-    QPushButton *deleteSelectedButton;
-    QPushButton *deleteAllButton;
-    QLineEdit *responseLabel;
-    QTimer *responseLabelTimer;
-    QLabel *usernameLabel;
-    QHBoxLayout *hHeaderLayout;
-    QHBoxLayout *hResponseLabelLayout;
-    QHBoxLayout *hTableViewLayout;
-    QHBoxLayout *hAlphabeticOptionsLayout;
-    QHBoxLayout *hComparableOptionsLayout;
-    QHBoxLayout *hFilterButtonsLayout;
-    QHBoxLayout *hFilterLabelLayout;
+  AddElementDialog *addElementDialog;
+  QVBoxLayout *widgetVLayout;
+  QPushButton *disconnectButton;
+  QPushButton *addButton;
+  QPushButton *deleteSelectedButton;
+  QPushButton *deleteAllButton;
+  QLineEdit *responseLabel;
+  QTimer *responseLabelTimer;
+  QLabel *usernameLabel;
+  QHBoxLayout *hHeaderLayout;
+  QHBoxLayout *hResponseLabelLayout;
+  QHBoxLayout *hTableViewLayout;
+  QHBoxLayout *hAlphabeticOptionsLayout;
+  QHBoxLayout *hComparableOptionsLayout;
+  QHBoxLayout *hFilterButtonsLayout;
+  QHBoxLayout *hFilterLabelLayout;
 
-    QStandardItemModel *model;
-    QTableView *tableView;
+  QStandardItemModel *model;
+  QTableView *tableView;
 
-    QLabel *filterLabel;
-    QLabel *startsWithLetterLabel;
-    QComboBox *startsWithLetterComboBox;
-    QComboBox *alphabetComboBox;
+  QLabel *filterLabel;
+  QLabel *startsWithLetterLabel;
+  QComboBox *startsWithLetterComboBox;
+  QComboBox *alphabetComboBox;
 
-    QComboBox *compareComboBox;
-    QComboBox *compareElementsComboBox;
-    QCheckBox *geqCheckBox;
-    QCheckBox *leqCheckBox;
-    QPushButton *filterButton;
-    QPushButton *dropFilterButton;
-    QMap<QString, QStringList> alphCompMap;
-    QStringList desiredHeaderOrder;
-    int idLogicalIndex = -1;
-    int photoLogicalIndex = -1;
-    QMap<QString, QPair<int, QList<int>>> compHeaderData;
-    BackendManager *backendManager = nullptr;
+  QComboBox *compareComboBox;
+  QComboBox *compareElementsComboBox;
+  QCheckBox *geqCheckBox;
+  QCheckBox *leqCheckBox;
+  QPushButton *filterButton;
+  QPushButton *dropFilterButton;
+  QMap<QString, QStringList> alphCompMap;
+  QStringList desiredHeaderOrder;
+  int idLogicalIndex = -1;
+  int photoLogicalIndex = -1;
+  QMap<QString, QPair<int, QList<int>>> compHeaderData;
+  BackendManager *backendManager = nullptr;
 
-    void initHeaderLayout();
-    void initResponseLabelLayout();
-    void initTableViewLayout();
-    void initFilterOptionsLayout();
-    void initWidgetVLayout();
-    void initConnections();
+  void initHeaderLayout();
+  void initResponseLabelLayout();
+  void initTableViewLayout();
+  void initFilterOptionsLayout();
+  void initWidgetVLayout();
+  void initConnections();
 
 private slots:
-    void slotAddButtonClicked();
-    void slotDisconnectButtonClicked();
-    void slotFilterButtonClicked();
-    void slotUpdateCompareElementsComboBox(const QString& changedField);
-    void slotClearComparableFields();
-    void slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMap);
-    void slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem*>> rows);
-    void slotDeleteAllRecordingsSuccessful(int countDeleted);
-    void slotDeleteSelectedRecordingsSuccessful();
-    void slotAddRecordingSuccessful();
-    void slotFilterSelectSuccessful(QList<int> studentIds);
+  void slotAddButtonClicked();
+  void slotDisconnectButtonClicked();
+  void slotFilterButtonClicked();
+  void slotUpdateCompareElementsComboBox(const QString &changedField);
+  void slotClearComparableFields();
+  void slotGetHeadersSuccessful(QMap<QString, QStringList> fieldsMap);
+  void slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QList<QList<QStandardItem *>> rows);
+  void slotDeleteAllRecordingsSuccessful(int countDeleted);
+  void slotDeleteSelectedRecordingsSuccessful();
+  void slotAddRecordingSuccessful();
+  void slotFilterSelectSuccessful(QList<int> studentIds);
 signals:
-    void disconnectButtonClicked();
-    void addButtonClicked();
+  void disconnectButtonClicked();
+  void addButtonClicked();
 };
 
-void fillColumnData(QMap<QString, QPair<int, QList<int>>>& compHeaderIds, QStandardItemModel* model);
+void fillColumnData(QMap<QString, QPair<int, QList<int>>> &compHeaderIds, QStandardItemModel *model);
 
 #endif // MAINWIDGET_H

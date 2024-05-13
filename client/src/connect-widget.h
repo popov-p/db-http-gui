@@ -9,28 +9,30 @@
 #include <QLineEdit>
 #include "backend-manager.h"
 
-class ConnectWidget : public QWidget {
-    Q_OBJECT
+class ConnectWidget : public QWidget
+{
+  Q_OBJECT
 
 public:
-    ConnectWidget(BackendManager *backendManager, QWidget *parent = nullptr);
-    ~ConnectWidget() = default;
+  ConnectWidget(BackendManager *backendManager, QWidget *parent = nullptr);
+  ~ConnectWidget() = default;
 public slots:
-    void slotDisconnectButtonClicked();
-private:
-    QVBoxLayout *widgetVLayout;
-    QPushButton *connectButton;
-    QLineEdit *connectStatus;
-    QHBoxLayout *hConnectLayout;
-    QHBoxLayout *hConnectStatusLayout;
-    BackendManager *backendManager = nullptr;
+  void slotDisconnectButtonClicked();
 
-    void initConnectLayout();
-    void initConnectStatusLayout();
-    void initwidgetVLaoyut();
-    void initConnections();
+private:
+  QVBoxLayout *widgetVLayout;
+  QPushButton *connectButton;
+  QLineEdit *connectStatus;
+  QHBoxLayout *hConnectLayout;
+  QHBoxLayout *hConnectStatusLayout;
+  BackendManager *backendManager = nullptr;
+
+  void initConnectLayout();
+  void initConnectStatusLayout();
+  void initwidgetVLaoyut();
+  void initConnections();
 signals:
-    void connectButtonClicked();
+  void connectButtonClicked();
 };
 
 #endif // CONNECTWIDGET_H
