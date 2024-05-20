@@ -6,28 +6,25 @@ from fastapi import HTTPException
 
 def create_student(db: Session, student: schemas.Student):
     try:
-        db_student = models.Student(**student.dict())
-        db.add(db_student)
-        db.commit()
-        db.refresh(db_student)
-        return db_student
+        with db.begin():
+            db_student = models.Student(**student.dict())
+            db.add(db_student)
+            db.flush()
+            #print("here is ---:", db_student)
+            return db_student
     except SQLAlchemyError as e:
         logging.error(f"Database error: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Database error")
     except Exception as e:
         logging.error(f"Error creating student: {e}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
 def get_student(db: Session, student_id: int):
-    try:
-        return db.query(models.Student).filter(models.Student.id == student_id).first()
-    except NoResultFound:
-        logging.error(f"Student with id {student_id} not found")
-        raise HTTPException(status_code=404, detail="Student not found")
-    except Exception as e:
-        logging.error(f"Error getting student: {e}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+        student = db.query(models.Student).filter(models.Student.id == student_id).first()
+        if not student:
+            logging.error(f"Student with id {student_id} not found")
+            raise HTTPException(status_code=404, detail="Student not found")
+        return student
 
 def get_all_students(db: Session):
     try:
@@ -38,17 +35,16 @@ def get_all_students(db: Session):
 
 def delete_student(db: Session, student_id: int):
     try:
-        db_student = db.query(models.Student).filter(models.Student.id == student_id).first()
-        if not db_student:
-            raise HTTPException(status_code=404, detail="Student not found")
-        db.delete(db_student)
-        db.commit()
+        with db.begin():
+            db_student = db.query(models.Student).filter(models.Student.id == student_id).first()
+            if not db_student:
+                raise HTTPException(status_code=404, detail="Student not found")
+            db.delete(db_student)
     except NoResultFound:
         logging.error(f"Student with id {student_id} not found")
         raise HTTPException(status_code=404, detail="Student not found")
     except SQLAlchemyError as e:
         logging.error(f"Database error: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Database error")
     except Exception as e:
         logging.error(f"Error deleting student: {e}")
@@ -56,12 +52,11 @@ def delete_student(db: Session, student_id: int):
 
 def delete_all_students(db: Session):
     try:
-        num_deleted = db.query(models.Student).delete()
-        db.commit()
-        return num_deleted
+        with db.begin():
+            num_deleted = db.query(models.Student).delete()
+            return num_deleted
     except SQLAlchemyError as e:
         logging.error(f"Database error: {e}")
-        db.rollback()
         raise HTTPException(status_code=500, detail="Database error")
     except Exception as e:
         logging.error(f"Error deleting all students: {e}")

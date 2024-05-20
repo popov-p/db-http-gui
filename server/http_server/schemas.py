@@ -1,7 +1,22 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import  List
 from fastapi import Query
 
+import base64 
+
+class AuthModel(BaseModel):
+    username: str
+    password: str
+
+    @classmethod
+    def from_authorization_header(cls, authorization_header: str):
+        auth_type, encoded_credentials = authorization_header.split(" ")
+        if auth_type != "Basic":
+            raise ValueError("Invalid authorization type")
+        
+        decoded_credentials = base64.b64decode(encoded_credentials).decode("utf-8")
+        username, password = decoded_credentials.split(":")
+        return cls(username=username, password=password)
 
 class Student(BaseModel):
     id: int

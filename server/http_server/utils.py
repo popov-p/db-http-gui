@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from passlib.context import CryptContext
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 
 def init_config(config_file_path):
     if os.path.exists(config_file_path):
@@ -49,3 +50,27 @@ def init_config(config_file_path):
 
         with open(config_file_path, 'w') as configfile:
             config.write(configfile)
+
+
+def setup_logger(name, log_dir, level=logging.INFO, console=False, file=True):
+    logger = logging.getLogger(name)
+    logger.setLevel(level)
+
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    
+    if console:
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel(level)
+        console_handler.setFormatter(formatter)
+        logger.addHandler(console_handler)
+
+    if file:
+        os.makedirs(log_dir, exist_ok=True)
+        file_handler = RotatingFileHandler(
+            os.path.join(log_dir, 'backend.log'), maxBytes=10*1024*1024, backupCount=5
+        )
+        file_handler.setLevel(level)
+        file_handler.setFormatter(formatter)
+        logger.addHandler(file_handler)
+
+    return logger

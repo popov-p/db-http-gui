@@ -1,8 +1,8 @@
-from sqlalchemy import create_engine, Column, Integer, String, LargeBinary
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import select
+from sqlalchemy import create_engine, Column, Integer, String
+from sqlalchemy.orm import DeclarativeBase
 
-Base = declarative_base()
+class Base(DeclarativeBase):
+    pass
 
 
 class Student(Base):

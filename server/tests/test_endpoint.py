@@ -119,13 +119,11 @@ class TestAPI(unittest.TestCase):
                     data=json.dumps(student)
                 )
                 self.assertEqual(response.status_code, 200)
-                id_response = requests.post(
-                    f"{self.base_url}/test-id",
-                    auth=self.correct_credentials,
-                    data=json.dumps(student)
-                )
-                self.assertEqual(id_response.status_code, 200)
-                to_delete_ids+=id_response.json()
+                response_data = response.json()
+                student_id = response_data.get("id")
+                print("TESTAPI student id: ", student_id)
+                self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
+                to_delete_ids.append(student_id)
 
         response = requests.delete(
             f"{self.base_url}/delete-selected",
@@ -135,23 +133,18 @@ class TestAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
 
         #check if students were correctly deleted
-        after_deletion_ids = []
-        for student in correct_student_data:
-            id_response = requests.post(
-                    f"{self.base_url}/test-id",
-                    auth=self.correct_credentials,
-                    data=json.dumps(student)
-                )
-            self.assertEqual(id_response.status_code, 200)
-            after_deletion_ids+=id_response.json()
+        for check_id in to_delete_ids:
+            id_response = requests.get(f"{self.base_url}/student",
+            auth=self.correct_credentials,
+            params={"student_id": check_id})
+            self.assertEqual(id_response.status_code, 404)
         
-        self.assertEqual(after_deletion_ids, [-1 for _ in range(len(to_delete_ids))])
 
         response_after_delete = requests.get(f"{self.base_url}/students", auth=self.correct_credentials)
         num_students_after_delete = len(response_after_delete.json())
         self.assertEqual(num_students_after_delete, 0)
 
-
+####### ####### ####### ####### ####### #######
     def test_incorrect_delete_selected_students(self):
         student_ids_to_delete = [-1, -2, -3]
         response = requests.delete(
@@ -182,7 +175,6 @@ class TestAPI(unittest.TestCase):
         ids = []
         filtered_ids = []
         correct_student_data = [
-            
             {   #0
                 "last_name": "Popov",
                 "first_name": "Pavel",
@@ -261,19 +253,37 @@ class TestAPI(unittest.TestCase):
                     data=json.dumps(student)
                 )
                 self.assertEqual(response.status_code, 200)
+                response_data = response.json()
+                student_id = response_data.get("id")
+                print("TESTAPI student id: ", student_id)
+                self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
+                student["id"] = student_id
+                
 
             filter_response = requests.get(f"{self.base_url}/filter", params=params[0], auth=self.correct_credentials)
             self.assertEqual(filter_response.status_code, 200)
             filtered_ids += filter_response.json()
             for correct_ans_idx in  params[1]:
-                id_response = requests.post(
-                    f"{self.base_url}/test-id",
-                    auth=self.correct_credentials,
-                    data=json.dumps(correct_student_data[correct_ans_idx])
-                )
+                print("PARAMS[1]: ", params[1])
+                id_response = requests.get(f"{self.base_url}/student",
+                                            auth=self.correct_credentials,
+                                            params={"student_id": correct_student_data[correct_ans_idx]["id"]})
+                print("ON SELECTED ID: ", correct_student_data[correct_ans_idx]["id"])
                 self.assertEqual(id_response.status_code, 200)
-                ids+=id_response.json()
+                response_data = response.json()
+                student_id = response_data.get("id")
+                print("TESTAPI student id: ", student_id)
+                self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
+                # id_response = requests.post(
+                #     f"{self.base_url}/test-id",
+                #     auth=self.correct_credentials,
+                #     data=json.dumps(correct_student_data[correct_ans_idx])
+                # )
+                #self.assertEqual(id_response.status_code, 200)
+                #ids+=id_response.json()
+            
             self.assertEqual(sorted(ids), sorted(filtered_ids))
+            print(print("IDS-------- ON DONE", ids))
 
 if __name__ == "__main__":
     unittest.main()
