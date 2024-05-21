@@ -21,7 +21,7 @@ class MainWindow : public QMainWindow
   Q_OBJECT
 
 public:
-  MainWindow(QWidget *parent = nullptr);
+  MainWindow(QString cfgPath, QWidget *parent= nullptr);
   ~MainWindow() = default;
 
 public slots:
@@ -37,6 +37,7 @@ private:
   void initCentralStackedWidget();
 
   BackendManager *backendManager;
+
 private slots:
   void slotDisconnectButtonClicked();
   void slotConnectionSuccessful();

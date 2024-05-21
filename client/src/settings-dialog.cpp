@@ -2,7 +2,7 @@
 #include "settings-dialog.h"
 #include <QDir>
 
-SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) : QDialog(parent),
+SettingsDialog::SettingsDialog(BackendManager *backendManager, QString inpCfgPath, QWidget *parent) : QDialog(parent),
                                                                                   backendManager(backendManager)
 {
   setWindowFlags(windowFlags() & ~Qt::WindowCloseButtonHint);
@@ -17,12 +17,14 @@ SettingsDialog::SettingsDialog(BackendManager *backendManager, QWidget *parent) 
   initSettingsStatusLayout();
   initVerticalDialogLayout();
   initConnections();
+  readCfgIni(inpCfgPath);
+  cfgPath = inpCfgPath;
 }
 
 void SettingsDialog::initHostLayout()
 {
   ipLabel = new QLabel("ip: ", this);
-  ipLineEdit = new QLineEdit("http://127.0.0.1:8000", this);
+  ipLineEdit = new QLineEdit(this);
   hIpLayout = new QHBoxLayout();
   hIpLayout->addWidget(ipLabel);
   hIpLayout->addWidget(ipLineEdit);
@@ -57,7 +59,6 @@ void SettingsDialog::initLogDirLayout()
   logdirLineEdit = new QLineEdit(this);
   hLogDirLayout = new QHBoxLayout();
 
-  logdirLineEdit->setText("../log");
   hLogDirLayout->addWidget(logdirLabel);
   hLogDirLayout->addWidget(logdirLineEdit);
 }
@@ -115,12 +116,13 @@ void SettingsDialog::initConnections()
           this, &SettingsDialog::slotCancelButtonClicked);
   connect(backendManager, &BackendManager::loginSuccessful, this, [this]()
           {
-            dumpCfgIni();
+            dumpCfgIni(cfgPath);
             startLogging();
-            ipLineEdit->setText("http://127.0.0.1:8000");
+            readCfgIni(cfgPath);
+
             usernameLineEdit->clear();
             passwordLineEdit->clear();
-            logdirLineEdit->setText("../log");
+
             logComboBox->setCurrentIndex(0);
             settingsStatus->clear();
             hide();
@@ -158,9 +160,9 @@ void SettingsDialog::slotCancelButtonClicked()
   hide();
 }
 
-void SettingsDialog::dumpCfgIni()
+void SettingsDialog::dumpCfgIni(const QString &fileName)
 {
-  QSettings settingsIni = QSettings(QDir(logdirLineEdit->text() + QString("/../cfg.ini")).absolutePath(), QSettings::IniFormat);
+  QSettings settingsIni = QSettings(QDir(fileName).absolutePath(), QSettings::IniFormat);
 
   settingsIni.beginGroup("base-url");
   settingsIni.setValue("ip", ipLineEdit->text());
@@ -177,22 +179,23 @@ void SettingsDialog::dumpCfgIni()
   LOG(INFO) << "Qt: SettingsDialog dumping cfg";
 }
 
+void SettingsDialog::readCfgIni(const QString &fileName) {
+    QSettings settingsIni = QSettings(QDir(fileName).absolutePath(), QSettings::IniFormat);
+    QString ip = settingsIni.value("base-url/ip", "http://127.0.0.1:8000").toString();
+    QString logDir = settingsIni.value("logging/dir", "../log").toString();
+    ipLineEdit->setText(ip);
+    logdirLineEdit->setText(logDir);
+};
+
 void SettingsDialog::startLogging()
 {
   auto logDir = QDir(logdirLineEdit->text());
   if (!QDir(logdirLineEdit->text()).exists())
-  {
     QDir().mkdir(logdirLineEdit->text());
-  }
-
   if (logComboBox->currentText() == "INFO")
-  {
     google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());
-  }
   else if (logComboBox->currentText() == "ERROR")
-  {
     google::SetLogDestination(google::GLOG_ERROR, (logDir.filePath("ERROR_").toStdString()).c_str());
-  }
   else
   {
     google::SetLogDestination(google::GLOG_INFO, (logDir.filePath("INFO_").toStdString()).c_str());

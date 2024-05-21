@@ -5,14 +5,14 @@
 #include <QIntValidator>
 #include <QComboBox>
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QString cfgPath, QWidget *parent)
     : QMainWindow(parent)
 {
   setGeometry(100, 100, 800, 600);
   backendManager = new BackendManager(this);
   connectWidget = new ConnectWidget(backendManager, this);
   mainWidget = new MainWidget(backendManager, this);
-  settingsDialog = new SettingsDialog(backendManager, this);
+  settingsDialog = new SettingsDialog(backendManager, cfgPath, this);
 
   initCentralStackedWidget();
   initConnections();

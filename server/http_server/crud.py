@@ -10,7 +10,6 @@ def create_student(db: Session, student: schemas.Student):
             db_student = models.Student(**student.dict())
             db.add(db_student)
             db.flush()
-            #print("here is ---:", db_student)
             return db_student
     except SQLAlchemyError as e:
         logging.error(f"Database error: {e}")
@@ -81,19 +80,3 @@ def filter(db:Session, **kwargs):
             else:
                 query = query.filter(getattr(models.Student, value[0]) == value[1])
     return [student.id for student in query.all()]
-
-def id_by_data(db: Session, student: schemas.StudentCreate):
-    db_students_query = db.query(models.Student).filter_by(
-        last_name=student.last_name,
-        first_name=student.first_name,
-        patronymic=student.patronymic,
-        group=student.group,
-        year=student.year,
-        course=student.course,
-        photo=student.photo
-    )
-
-    if db_students_query.first():
-        return [db_student.id for db_student in db_students_query]
-    else:
-        return [-1]

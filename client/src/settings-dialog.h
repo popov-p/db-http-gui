@@ -23,9 +23,7 @@ public:
     for (const QChar &ch : input)
     {
       if (ch == ' ')
-      {
         return Invalid;
-      }
     }
     return Acceptable;
   }
@@ -35,9 +33,10 @@ class SettingsDialog : public QDialog
 {
   Q_OBJECT
 public:
-  SettingsDialog(BackendManager *backendManager, QWidget *parent = nullptr);
-  void dumpCfgIni();
+  SettingsDialog(BackendManager *backendManager, QString cfgPath, QWidget *parent = nullptr);
+  void dumpCfgIni(const QString &fileName);
   void startLogging();
+  void readCfgIni(const QString &fileName);
   ~SettingsDialog() = default;
 public slots:
   void slotOkButtonDone();
@@ -76,6 +75,7 @@ private:
   void initSettingsStatusLayout();
   void initVerticalDialogLayout();
   void initConnections();
+  QString cfgPath;
 signals:
   void okButtonDone();
 };

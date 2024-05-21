@@ -82,9 +82,7 @@ void MainWidget::slotUpdateCompareElementsComboBox(const QString &changedField)
     geqCheckBox->show();
     const QList<int> &intList = compHeaderData[changedField].second;
     for (const int &value : intList)
-    {
       compareElementsComboBox->addItem(QString::number(value));
-    }
   }
   else
   {
@@ -144,9 +142,7 @@ void MainWidget::slotGetAllRecordingsSuccessful(QStringList currentKeyOrder, QLi
   photoLogicalIndex = currentKeyOrder.indexOf("photo");
   compHeaderData.clear();
   for (const QString &compField : alphCompMap["comparable"])
-  {
     compHeaderData[compField].first = currentKeyOrder.indexOf(compField);
-  }
 
   for (const QList<QStandardItem *> &rowData : rows)
   {
@@ -236,9 +232,7 @@ void MainWidget::slotFilterSelectSuccessful(QList<int> studentIds)
     int id = model->data(index).toInt();
 
     if (!studentIds.contains(id))
-    {
       tableView->hideRow(row);
-    }
   }
   for (const auto &id : studentIds)
   {
@@ -338,9 +332,7 @@ void MainWidget::initHeaderLayout()
   QList<QPushButton *> buttons = {addButton, deleteSelectedButton,
                                   deleteAllButton, disconnectButton};
   for (QPushButton *button : buttons)
-  {
     button->setFixedSize(100, 50);
-  }
 
   hHeaderLayout->addWidget(addButton);
   hHeaderLayout->addWidget(deleteSelectedButton);
@@ -445,16 +437,14 @@ void MainWidget::initConnections()
 {
   connect(startsWithLetterComboBox, &QComboBox::currentTextChanged, this, [this]()
           {
-            if(startsWithLetterComboBox->currentText() == "-") {
+            if(startsWithLetterComboBox->currentText() == "-")
               alphabetComboBox->clear();
-            }
             else {
               alphabetComboBox->clear();
               QStringList alphabet;
               alphabet.append("-");
-              for (char letter = 'A'; letter <= 'Z'; ++letter) {
+              for (char letter = 'A'; letter <= 'Z'; ++letter)
                 alphabet.append(QString(letter));
-              }
               alphabetComboBox->addItems(alphabet);
             }
           });
@@ -468,15 +458,13 @@ void MainWidget::initConnections()
   connect(filterButton, &QPushButton::clicked, this, &MainWidget::slotFilterButtonClicked);
   connect(leqCheckBox, &QCheckBox::stateChanged, this, [&](int state)
           {
-            if (state == Qt::Checked) {
+            if (state == Qt::Checked)
               geqCheckBox->setChecked(false);
-            }
           });
   connect(geqCheckBox, &QCheckBox::stateChanged, this, [&](int state)
           {
-            if (state == Qt::Checked) {
+            if (state == Qt::Checked)
               leqCheckBox->setChecked(false);
-            }
           });
   connect(responseLabel, &QLineEdit::textChanged, this, [&]()
           { responseLabelTimer->start(1000); });
@@ -498,9 +486,9 @@ void MainWidget::initConnections()
               }
               backendManager->deleteSelectedRecordings(selectedIds);
             }
-            else {
+            else
               responseLabel->setText("Nothing to delete");
-            }
+
           });
   connect(deleteAllButton, &QPushButton::clicked, this, [this]()
           { backendManager->deleteAllRecordings(); });
@@ -534,9 +522,7 @@ void fillColumnData(QMap<QString, QPair<int, QList<int>>> &compHeaderIds, QStand
         if (ok)
         {
           if (!columnData.contains(columnNumber))
-          {
             columnData.append(columnNumber);
-          }
         }
       }
     }

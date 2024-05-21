@@ -1,26 +1,20 @@
 from fastapi import Query, Depends, Response, HTTPException, APIRouter, Header
-
-
 from sqlalchemy import inspect
 from fastapi.security import HTTPBasic
-
 from typing import List, Optional
 from server.http_server import schemas
 from server.http_server.models import Student
 from server.http_server.schemas import FieldsResponse, AuthModel
-
 from server.http_server import crud
-import os
-
 from passlib.context import CryptContext
-
 from .utils import setup_logger 
 from .database import get_db, Session
 from .config import app_config
 
 logger = setup_logger('backend-logger',
                             log_dir=app_config.log_dir,
-                            level=app_config.severity)
+                            level=app_config.severity,
+                            )
 
 security = HTTPBasic()
 router = APIRouter()
@@ -44,20 +38,20 @@ def get_fields(db: Session = Depends(get_db)):
     comparable = [col_name for col_name, column in columns.items() if (column.type.python_type == int) and col_name != "id"]
     return FieldsResponse(total=total, alphabetic=alphabetic, comparable=comparable)
 
-
 # Create student
 @router.post("/add", response_model=schemas.Student, dependencies=[Depends(auth)])
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     logger.info("POST /add call")
     return crud.create_student(db=db, student=student)
+
 #get student by id
-@router.get("/student", response_model=schemas.Student)
+@router.get("/student", response_model=schemas.Student, dependencies=[Depends(auth)])
 def testfunc_get_student(student_id: int, db: Session = Depends(get_db)):
     return crud.get_student(db=db,student_id=student_id)
 
 
-@router.get("/students", response_model=List[schemas.Student])
-def get_all_students(db: Session = Depends(get_db)): #############################
+@router.get("/students", response_model=List[schemas.Student], dependencies=[Depends(auth)])
+def get_all_students(db: Session = Depends(get_db)):
     logger.info("GET /students call")
     return crud.get_all_students(db)
 
@@ -106,7 +100,3 @@ def filter_by(
                     filtering_params["bool"] = (key, value)
     return crud.filter(db=db, **filtering_params)
 
-@router.post("/test-id", response_model=List[int])
-def test_get_id_by_data(student:schemas.StudentCreate, db: Session = Depends(get_db)):
-    #testing function, no logging provided
-    return crud.id_by_data(db=db, student=student)

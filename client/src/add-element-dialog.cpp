@@ -90,13 +90,9 @@ void AddElementDialog::slotOkButtonDone()
         dataMap.clear();
       }
       else if (lineEdit->text().toInt())
-      {
         dataMap[fieldKey] = lineEdit->text().toInt();
-      }
       else
-      {
         dataMap[fieldKey] = lineEdit->text();
-      }
     }
   }
 
@@ -178,13 +174,9 @@ void AddElementDialog::setInputFields(QString fieldsType, QStringList fieldsList
       QLabel *label = new QLabel(*it + ": ");
       QLineEdit *lineEdit = new QLineEdit(this);
       if (fieldsType == "alphabetic")
-      {
         lineEdit->setValidator(alphabeticValidator);
-      }
       else if (fieldsType == "comparable")
-      {
         lineEdit->setValidator(comparableValidator);
-      }
 
       layout->addWidget(label);
       layout->addWidget(lineEdit);
@@ -208,8 +200,6 @@ void AddElementDialog::inputFieldsCleanup()
   for (const auto &widgetList : widgetLists)
   {
     for (const auto &widgetTuple : widgetList)
-    {
       std::get<2>(widgetTuple)->clear();
-    }
   }
 }

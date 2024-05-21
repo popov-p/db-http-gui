@@ -121,7 +121,6 @@ class TestAPI(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
                 response_data = response.json()
                 student_id = response_data.get("id")
-                print("TESTAPI student id: ", student_id)
                 self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
                 to_delete_ids.append(student_id)
 
@@ -144,7 +143,6 @@ class TestAPI(unittest.TestCase):
         num_students_after_delete = len(response_after_delete.json())
         self.assertEqual(num_students_after_delete, 0)
 
-####### ####### ####### ####### ####### #######
     def test_incorrect_delete_selected_students(self):
         student_ids_to_delete = [-1, -2, -3]
         response = requests.delete(
@@ -171,7 +169,7 @@ class TestAPI(unittest.TestCase):
             self.assertEqual(num_students_before_delete, 0)
             self.assertEqual(num_students_after_delete, 0)
 
-    def test_filter_by_alphabetic(self):
+    def test_filter_by_filter_flags(self):
         ids = []
         filtered_ids = []
         correct_student_data = [
@@ -255,35 +253,17 @@ class TestAPI(unittest.TestCase):
                 self.assertEqual(response.status_code, 200)
                 response_data = response.json()
                 student_id = response_data.get("id")
-                print("TESTAPI student id: ", student_id)
+
                 self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
                 student["id"] = student_id
-                
 
             filter_response = requests.get(f"{self.base_url}/filter", params=params[0], auth=self.correct_credentials)
             self.assertEqual(filter_response.status_code, 200)
             filtered_ids += filter_response.json()
-            for correct_ans_idx in  params[1]:
-                print("PARAMS[1]: ", params[1])
-                id_response = requests.get(f"{self.base_url}/student",
-                                            auth=self.correct_credentials,
-                                            params={"student_id": correct_student_data[correct_ans_idx]["id"]})
-                print("ON SELECTED ID: ", correct_student_data[correct_ans_idx]["id"])
-                self.assertEqual(id_response.status_code, 200)
-                response_data = response.json()
-                student_id = response_data.get("id")
-                print("TESTAPI student id: ", student_id)
-                self.assertIsNotNone(student_id, "Response JSON should contain 'id' field")
-                # id_response = requests.post(
-                #     f"{self.base_url}/test-id",
-                #     auth=self.correct_credentials,
-                #     data=json.dumps(correct_student_data[correct_ans_idx])
-                # )
-                #self.assertEqual(id_response.status_code, 200)
-                #ids+=id_response.json()
+            for correct_ans_idx in params[1]:
+                ids.append(correct_student_data[correct_ans_idx]["id"])
             
             self.assertEqual(sorted(ids), sorted(filtered_ids))
-            print(print("IDS-------- ON DONE", ids))
 
 if __name__ == "__main__":
     unittest.main()

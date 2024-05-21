@@ -84,9 +84,8 @@ void BackendManager::getHeaders()
                     QJsonArray jsonArray = jsonObject[key].toArray();
                     QStringList list;
                     for (const QJsonValue& value : jsonArray)
-                    {
                       list.append(value.toString());
-                    }
+
                     fieldsMapResponse[key] = list;
                   }
                   LOG(INFO) << "GET /fields success";
@@ -140,17 +139,13 @@ void BackendManager::getAllRecordings()
                       QJsonValue jsonValue = jsonObject.value(key);
                       QStandardItem *item = nullptr;
                       if (jsonValue.isString())
-                      {
                         item = new QStandardItem(jsonObject.value(key).toString());
-                      }
+
                       else if (jsonValue.isDouble())
-                      {
                         item = new QStandardItem(QString::number(jsonValue.toInt()));
-                      }
+
                       if (item != nullptr)
-                      {
                         row << item;
-                      }
                     }
                     rows.append(row);
                   }
@@ -238,11 +233,13 @@ void BackendManager::deleteSelectedRecordings(const QVector<int> &studentIds)
   QNetworkReply *reply = networkManager->sendCustomRequest(request, "DELETE", data);
   connect(reply, &QNetworkReply::finished, this, [this, reply]()
           {
-            if (reply->error() == QNetworkReply::NoError) {
+            if (reply->error() == QNetworkReply::NoError)
+            {
               LOG(INFO) << "DELETE /delete-selected success";
               emit deleteSelectedRecordingsSuccessful();
             }
-            else {
+            else
+            {
               LOG(ERROR) << "DELETE /delete-selected failed, " + reply->errorString().toStdString();
               emit requestFailed("deleteSelectedRecordings, ",reply->error());
             }
